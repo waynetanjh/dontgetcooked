@@ -33,7 +33,7 @@ export default function NewPersonPage() {
       });
 
       toast.success("Event created successfully!");
-      router.push("/dashboard/people");
+      router.push("/dashboard");
       router.refresh();
     } catch (error: any) {
       console.error("Failed to create event:", error);
@@ -47,7 +47,7 @@ export default function NewPersonPage() {
   return (
     <div className="space-y-6">
       {/* Back Button */}
-      <Link href="/dashboard/people">
+      <Link href="/dashboard">
         <Button variant="ghost" size="sm">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Home

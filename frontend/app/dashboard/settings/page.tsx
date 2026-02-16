@@ -80,12 +80,6 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Backend API:</span>
-              <span className="font-mono">
-                {process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Timezone:</span>
               <span>Asia/Singapore</span>
             </div>

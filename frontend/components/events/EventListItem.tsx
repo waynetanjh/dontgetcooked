@@ -33,7 +33,6 @@ export function EventListItem({ event, onDelete }: EventListItemProps) {
   const eventDate = new Date(event.eventDate);
   const countdown = getCountdownText(eventDate);
   const yearCount = getYearCount(eventDate);
-  const isToday = countdown === "Today!";
 
   const handleEdit = () => {
     router.push(`/dashboard/people/${event.id}/edit`);
@@ -57,13 +56,11 @@ export function EventListItem({ event, onDelete }: EventListItemProps) {
   return (
     <>
       <div 
-        className={`group flex items-center justify-between py-3 px-4 border-b last:border-b-0 hover:bg-accent transition-colors min-h-[44px] ${
-          isToday ? "bg-primary/5 border-primary/20" : ""
-        }`}
+        className="group flex items-center justify-between py-3 px-4 border-b last:border-b-0 hover:bg-accent transition-colors min-h-[44px]"
       >
         <div className="flex-1 min-w-0 pr-4">
           <div className="flex items-center gap-2 mb-1">
-            <div className={`font-medium truncate ${isToday ? "text-primary" : ""}`}>
+            <div className="font-medium truncate">
               {event.name}
             </div>
             {event.eventLabel && (
@@ -85,7 +82,7 @@ export function EventListItem({ event, onDelete }: EventListItemProps) {
         </div>
         
         <div className="flex items-center gap-2">
-          <div className={`text-sm font-semibold shrink-0 ${isToday ? "text-primary" : "text-muted-foreground"}`}>
+          <div className="text-sm font-semibold shrink-0 text-muted-foreground">
             {countdown}
           </div>
           

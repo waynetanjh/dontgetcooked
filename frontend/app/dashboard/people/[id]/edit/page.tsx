@@ -45,7 +45,7 @@ export default function EditPersonPage({
     } catch (error) {
       console.error("Failed to load event:", error);
       toast.error("Failed to load event");
-      router.push("/dashboard/people");
+      router.push("/dashboard");
     } finally {
       setIsFetching(false);
     }
@@ -69,7 +69,7 @@ export default function EditPersonPage({
       });
 
       toast.success("Event updated successfully!");
-      router.push("/dashboard/people");
+      router.push("/dashboard");
       router.refresh();
     } catch (error: any) {
       console.error("Failed to update event:", error);
@@ -108,7 +108,7 @@ export default function EditPersonPage({
   return (
     <div className="space-y-6">
       {/* Back Button */}
-      <Link href="/dashboard/people">
+      <Link href="/dashboard">
         <Button variant="ghost" size="sm">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Home
