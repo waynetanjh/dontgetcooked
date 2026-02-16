@@ -28,7 +28,7 @@ TELEGRAM_CHAT_ID="your-telegram-chat-id"
 TZ="Asia/Singapore"
 CRON_TIME="0 9 * * *"
 PORT=3001
-FRONTEND_URL=https://your-frontend-domain.com
+FRONTEND_URL=http://localhost:3000
 ```
 
 ### Frontend (`frontend/.env.local`)
@@ -52,11 +52,11 @@ cd ../frontend && npm install
 
 2. Set up environment variables for both `backend/.env` and `frontend/.env.local` using the examples above.
 
-3. Start the backend with Docker Compose:
+3. Start the database with Docker Compose:
 
 ```bash
 cd backend
-docker-compose up --build
+docker-compose -f docker-compose.local.yml up --build
 ```
 
 4. Start the frontend:
@@ -64,6 +64,12 @@ docker-compose up --build
 ```bash
 cd frontend
 npm run dev
+```
+
+5. Start prisma studio 
+```bash
+cd backend
+npx prisma studio
 ```
 
 ### Production Deployment (AWS EC2 + Caddy)
@@ -104,7 +110,7 @@ sudo systemctl status caddy
 
 Caddy automatically provisions SSL certificates via Let's Encrypt.
 
-#### 4. Start the Backend
+#### 4. Start the Backend and the database
 
 ```bash
 cd backend
