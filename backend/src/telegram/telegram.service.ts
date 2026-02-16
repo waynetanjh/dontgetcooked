@@ -86,7 +86,7 @@ You'll automatically receive daily notifications for:
 💝 Anniversaries  
 🎉 Special events
 
-Head to <b>Settings</b> in the app to send a test notification and make sure everything works!
+Head to <b>Settings</b> on the website to send a test notification and make sure everything works!
 
 Notifications are sent once daily at 9:00 AM (SGT) if there are any events for the day.
 
