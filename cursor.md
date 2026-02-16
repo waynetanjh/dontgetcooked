@@ -1,383 +1,190 @@
-# Birthday Reminder App - Cursor AI Instructions
+# Don't Get Cooked Reminder App - Cursor AI Instructions
 
 ## Project Overview
-Build a personal web app to track friends' birthdays and receive automated Telegram reminders. This is a single-user application (personal use only).
+Personal web app to track birthdays, anniversaries, and important events with automated Telegram reminders. Single-user application.
 
 ## Tech Stack
 - **Frontend:** Next.js 14+ (App Router), TypeScript, TailwindCSS
 - **Backend:** NestJS, TypeScript
 - **Database:** PostgreSQL with Prisma ORM
 - **Authentication:** JWT with Passport (NextAuth.js on frontend)
-- **Cron Jobs:** @nestjs/schedule
-- **Notifications:** Telegram Bot API
-- **Deployment:** 
-  - Frontend: Vercel
-  - Backend + Database: Docker Compose on Railway/EC2/Lightsail
+- **Notifications:** Telegram Bot API, @nestjs/schedule for cron jobs
+- **Deployment:** Vercel (frontend), Docker Compose on AWS EC2 (backend + DB)
 
 ## Code Principles
-- **Keep it modular and maintainable**
-- **Apply KISS (Keep It Simple, Stupid) principles**
-- **Avoid over-engineering** - this is a personal app
-- **Clear separation of concerns**
-- **Readable, self-documenting code**
+- Keep it modular and maintainable
+- Apply KISS principles - avoid over-engineering
+- Clear separation of concerns
+- Readable, self-documenting code
 
 ## Core Features
-1. **Friend Management**
-   - Add new friends with name, birthday, optional photo, and notes
-   - Edit existing friend details
-   - Delete friends
-   - View all friends in a list
 
-2. **Birthday Tracking**
-   - View upcoming birthdays sorted chronologically
-   - Calculate age/days until birthday
-   - Configurable reminder preferences per friend (day-of, 3 days before, 7 days before)
+### 1. Event Management
+- Add events with required fields (name, date) and optional fields (event label, notes)
+- Event label is freeform text input - users can type anything ("Birthday", "Anniversary", "First Date", "Adoption Day", etc.)
+- Edit existing events - update any field
+- Delete events with confirmation
+- View all events in a list/card format
+- All events automatically recur annually
 
-3. **Calendar Export**
-   - Generate .ics file with all birthdays
-   - Import into Google Calendar, Apple Calendar, Outlook
+### 2. Smart Reminders
+- Upcoming events view - sorted chronologically by next occurrence
+- Countdown display - show time until event:
+  - "Today!" for same-day events
+  - "Tomorrow" for next day
+  - "In X days" for future events
 
-4. **Telegram Notifications**
-   - Daily cron job checks for upcoming birthdays (time configurable via timezone)
-   - Sends Telegram messages based on reminder preferences
-   - Include friend's name, age, and days until birthday in message
-   - **Test Telegram button** in UI to send a test notification immediately
+### 3. Telegram Notifications
+- Automated daily cron job:
+  - Runs at configured time (default 9:00 AM)
+  - Checks all events for today's date
+  - Sends notification for matching events via bot
+- Message format includes:
+  - Event name (e.g., "John's Birthday")
+  - Event label if provided (e.g., "Birthday", "Wedding Anniversary")
+  - Personal notes if added (optional)
+  - Example: "🎂 John's Birthday - Birthday. Note: Loves chocolate cake"
+  - Example without notes: "🎉 Sarah's Anniversary - Wedding Anniversary"
+- Test notification button in settings:
+  - Immediately sends test message to verify integration
+  - Message: "🎉 Test notification from Birthday Reminder App! Your notifications are working correctly."
+  - Shows success/error feedback in UI
+- Error handling: Log Telegram API failures without crashing app
 
-5. **Authentication**
-   - Simple login (single user)
-   - JWT tokens for API authentication
-   - Protected routes on frontend and backend
+### 4. Calendar Integration
+- Export functionality:
+  - Generate .ics (iCalendar) file with all events
+  - Include recurring annual events properly formatted
+  - One-click download from UI
+- Import compatibility:
+  - Works with Google Calendar
+  - Works with Apple Calendar
+  - Works with Outlook
+- Events sync as recurring yearly reminders in external calendars
+
+### 5. Authentication & Security
+- Single-user system:
+  - Simple registration (one-time setup)
+  - Email + password login
+  - No multi-user complexity needed
+- JWT-based authentication:
+  - Tokens generated on login
+  - Stored in NextAuth.js session on frontend
+  - Sent with all API requests via Authorization header
+- Protected routes:
+  - All dashboard pages require authentication
+  - All API endpoints (except auth) require valid JWT
+  - Automatic redirect to login if unauthorized
+- Security measures:
+  - Passwords hashed with bcrypt
+  - JWT tokens with reasonable expiration
+  - CORS restricted to frontend domain
+  - Input validation on all endpoints
 
 ## Database Schema (Prisma)
 ```prisma
-// prisma/schema.prisma
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  password  String   // Hashed with bcrypt
+  password  String   // bcrypt hashed
   name      String
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
   @@map("users")
 }
 
 model Friend {
-  id                String   @id @default(uuid())
-  name              String
-  birthday          DateTime @db.Date
-  photoUrl          String?  @map("photo_url")
-  notes             String?
-  remindDaysBefore  Int[]    @default([0, 3, 7]) @map("remind_days_before")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
-
+  id          String   @id @default(uuid())
+  name        String
+  eventDate   DateTime @db.Date @map("event_date")
+  eventLabel  String?  @map("event_label") // Custom text: "Birthday", "Anniversary", etc.
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
   @@map("friends")
 }
 ```
 
 ## Backend Structure (NestJS)
-
-### Module Architecture
 ```
 src/
 ├── main.ts
 ├── app.module.ts
-├── prisma/
-│   ├── prisma.module.ts
-│   └── prisma.service.ts
-├── auth/
-│   ├── auth.module.ts
-│   ├── auth.controller.ts
-│   ├── auth.service.ts
-│   ├── dto/
-│   │   ├── login.dto.ts
-│   │   └── register.dto.ts
-│   ├── guards/
-│   │   └── jwt-auth.guard.ts
-│   └── strategies/
-│       └── jwt.strategy.ts
-├── friends/
-│   ├── friends.module.ts
-│   ├── friends.controller.ts
-│   ├── friends.service.ts
-│   └── dto/
-│       ├── create-friend.dto.ts
-│       └── update-friend.dto.ts
-├── birthdays/
-│   ├── birthdays.module.ts
-│   ├── birthdays.controller.ts
-│   └── birthdays.service.ts
-├── telegram/
-│   ├── telegram.module.ts
-│   ├── telegram.controller.ts (for test button)
-│   └── telegram.service.ts
-└── scheduler/
-    ├── scheduler.module.ts
-    └── scheduler.service.ts
+├── prisma/ (module + service, global)
+├── auth/ (JWT strategy, guards, login/register)
+├── friends/ (CRUD with DTOs, all routes protected)
+├── birthdays/ (upcoming events, .ics export, year calculation)
+├── telegram/ (send messages, test endpoint)
+└── scheduler/ (daily cron job, sends reminders for today's events)
 ```
 
-### Key Backend Requirements
-
-#### PrismaModule
-- Extend PrismaClient
-- Handle connection lifecycle
-- Make it a global module
-
-#### AuthModule
-- Hash passwords with bcrypt
-- Generate JWT tokens on login
-- Implement JWT strategy for protected routes
-- Use guards to protect all endpoints except auth routes
-
-#### FriendsModule
-- CRUD operations using Prisma
-- All routes protected with JwtAuthGuard
-- DTOs for validation
-
-#### BirthdaysModule
-- Calculate upcoming birthdays
-- Sort by next occurrence
-- Calculate age and days remaining
-- Generate .ics file
-- Use timezone from environment variable for all date calculations
-
-#### TelegramModule
-- Send messages to Telegram Bot API
-- Method: `sendMessage(chatId, text)`
-- Endpoint: `https://api.telegram.org/bot{token}/sendMessage`
-- **Test endpoint** to send a test notification (protected route)
-- Format test message: "🎉 Test notification from Birthday Reminder App! Your notifications are working correctly."
-
-#### SchedulerModule
-- Cron job runs daily at configured time (default 9:00 AM in user's timezone)
-- Use timezone from TZ environment variable
-- Check all friends' birthdays
-- For each friend, check if today matches any `remindDaysBefore` value
-- Send Telegram message if match found
-- Log cron execution (timestamp, number of reminders sent)
+### Key Requirements
+- **Auth:** bcrypt passwords, JWT tokens, guards on all routes except auth
+- **Birthdays:** Calculate upcoming events sorted by next occurrence, respect TZ env var
+- **Telegram:** Test endpoint sends: "🎉 Test notification from Birthday Reminder App! Your notifications are working correctly."
+- **Scheduler:** Daily cron at configured time (default 9 AM), sends messages via bot for events happening today with event name, label, and notes (optional) - no year count
 
 ### API Endpoints
+- **Auth:** `POST /auth/register`, `POST /auth/login`
+- **Friends (protected):** `GET|POST /friends`, `GET|PUT|DELETE /friends/:id`
+- **Birthdays (protected):** `GET /birthdays/upcoming`, `GET /birthdays/calendar/export`
+- **Telegram (protected):** `POST /telegram/test`
 
-#### Auth
-- `POST /auth/register` - Register user
-- `POST /auth/login` - Login, returns JWT token
-
-#### Friends (all protected)
-- `GET /friends` - Get all friends
-- `GET /friends/:id` - Get single friend
-- `POST /friends` - Create friend
-- `PUT /friends/:id` - Update friend
-- `DELETE /friends/:id` - Delete friend
-
-#### Birthdays (all protected)
-- `GET /birthdays/upcoming` - Get upcoming birthdays (sorted)
-- `GET /birthdays/calendar/export` - Download .ics file
-
-#### Telegram (all protected)
-- `POST /telegram/test` - Send test notification to verify Telegram integration
-
-### Environment Variables (.env)
-```
+### Environment Variables
+```env
 DATABASE_URL="postgresql://user:password@localhost:5432/birthdays"
-JWT_SECRET="your-super-secret-jwt-key"
-TELEGRAM_BOT_TOKEN="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
-TELEGRAM_CHAT_ID="your-telegram-chat-id"
+JWT_SECRET="your-secret"
+TELEGRAM_BOT_TOKEN="bot-token"
+TELEGRAM_CHAT_ID="chat-id"
 TZ="Asia/Singapore"
 CRON_TIME="0 9 * * *"
 PORT=3001
 ```
 
-**Timezone Notes:**
-- Use IANA timezone format (e.g., "Asia/Singapore", "America/New_York", "Europe/London")
-- This affects when the cron job runs and how dates are calculated
-- Default to "Asia/Singapore" based on user location
-
 ## Frontend Structure (Next.js)
-
-### Directory Structure
 ```
 app/
-├── layout.tsx
-├── page.tsx (landing/login)
+├── page.tsx (login)
 ├── dashboard/
-│   ├── page.tsx (upcoming birthdays)
-│   ├── friends/
-│   │   ├── page.tsx (list all friends)
-│   │   ├── new/
-│   │   │   └── page.tsx (add friend form)
-│   │   └── [id]/
-│   │       └── edit/
-│   │           └── page.tsx (edit friend)
-│   ├── settings/
-│   │   └── page.tsx (test telegram, view settings)
-│   └── layout.tsx (protected layout)
-├── api/
-│   └── auth/
-│       └── [...nextauth]/
-│           └── route.ts
+│   ├── page.tsx (upcoming events)
+│   ├── friends/ (list, new, [id]/edit)
+│   └── settings/ (telegram test, timezone display)
 components/
-├── auth/
-│   ├── LoginForm.tsx
-│   └── ProtectedRoute.tsx
-├── friends/
-│   ├── FriendCard.tsx
-│   ├── FriendForm.tsx
-│   └── FriendList.tsx
-├── birthdays/
-│   ├── BirthdayCard.tsx
-│   └── UpcomingBirthdays.tsx
-├── settings/
-│   └── TelegramTest.tsx (test button component)
-└── ui/ (component library if needed)
+├── auth/ (LoginForm, ProtectedRoute)
+├── friends/ (FriendCard, FriendForm, FriendList)
+├── birthdays/ (BirthdayCard, UpcomingBirthdays)
+└── settings/ (TelegramTest)
 lib/
-├── api.ts (axios instance with JWT interceptor)
+├── api.ts (axios with JWT interceptor)
 └── utils.ts
 ```
 
-### Key Frontend Requirements
+### Key Requirements
+- **Auth:** NextAuth.js with Credentials provider, JWT in session, middleware protects dashboard
+- **Forms:** react-hook-form + zod validation
+- **UI:** TailwindCSS, responsive, loading states, toast notifications
+- **Display:** Events sorted chronologically, countdown ("in 5 days", "today!"), year count ("25th birthday")
 
-#### Authentication
-- Use NextAuth.js with Credentials provider
-- Store JWT in session
-- Protect dashboard routes with middleware
-- Axios interceptor to add JWT to all API requests
-
-#### API Integration
-- Create axios instance with base URL pointing to NestJS backend
-- Add Authorization header with JWT token
-- Handle 401 errors (redirect to login)
-
-#### Friend Management
-- Form with fields: name, birthday (date picker), photo URL, notes, reminder preferences (multi-select)
-- Validation using react-hook-form + zod
-- Display friends in cards with edit/delete actions
-
-#### Birthday Dashboard
-- Fetch upcoming birthdays from API
-- Display in chronological order
-- Show countdown (e.g., "in 5 days", "today!", "tomorrow")
-- Calculate and display age
-- Export to calendar button (downloads .ics file)
-
-#### Settings/Test Page
-- **Test Telegram Button**: Calls `POST /telegram/test` endpoint
-- Shows success/error message after testing
-- Display current timezone configuration
-- Simple, clean UI with clear feedback
-
-#### UI/UX
-- Use TailwindCSS for styling
-- Responsive design (mobile-friendly)
-- Loading states for API calls
-- Success/error toast notifications
-
-### Environment Variables (.env.local)
-```
+### Environment Variables
+```env
 NEXT_PUBLIC_API_URL=http://localhost:3001
-NEXTAUTH_SECRET="your-nextauth-secret"
+NEXTAUTH_SECRET="nextauth-secret"
 NEXTAUTH_URL=http://localhost:3000
 ```
 
 ## Docker Setup
+- **docker-compose.yml:** PostgreSQL 15-alpine + NestJS backend, runs prisma migrate deploy on start
+- **Backend Dockerfile:** Multi-stage build (node:20-alpine), generates Prisma client, exposes 3001
 
-### docker-compose.yml
-```yaml
-version: '3.8'
-
-services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: birthday-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: birthdays
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: birthday-backend
-    restart: unless-stopped
-    ports:
-      - "3001:3001"
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/birthdays
-      JWT_SECRET: ${JWT_SECRET}
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
-      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
-      TZ: ${TZ:-Asia/Singapore}
-      CRON_TIME: ${CRON_TIME:-0 9 * * *}
-      PORT: 3001
-    depends_on:
-      - postgres
-    command: sh -c "npx prisma migrate deploy && npm run start:prod"
-
-volumes:
-  postgres_data:
-```
-
-### Backend Dockerfile
-```dockerfile
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-COPY prisma ./prisma/
-RUN npm ci
-COPY . .
-RUN npx prisma generate
-RUN npm run build
-
-FROM node:20-alpine
-WORKDIR /app
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
-COPY package*.json ./
-EXPOSE 3001
-CMD ["npm", "run", "start:prod"]
-```
-
-## Telegram Bot Setup Instructions
-
-1. Open Telegram and search for `@BotFather`
-2. Send `/newbot` command
-3. Follow prompts to name your bot
-4. Copy the bot token (format: `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`)
-5. Start a chat with your new bot
-6. To get your Chat ID:
-   - Send a message to your bot
-   - Visit: `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates`
-   - Find your `chat.id` in the JSON response
-7. Add both values to your `.env` file
-8. **Test the integration** using the Test Telegram button in the settings page
-
-## Security Considerations
-- All passwords hashed with bcrypt
-- JWT tokens with reasonable expiration
-- CORS restricted to frontend domain only
-- HTTPS enforced in production
-- Environment variables never committed to git
-- Input validation on all endpoints
-- Test telegram endpoint is protected (requires authentication)
+## Telegram Bot Setup
+1. Message @BotFather → /newbot → get token
+2. Start chat with bot, send message
+3. Visit `https://api.telegram.org/bot<TOKEN>/getUpdates` → get chat.id
+4. Add to .env, test via settings page
 
 ## Development Notes
-- **Timezone handling:** All date comparisons should respect the TZ environment variable
-- **Test button:** Should provide immediate feedback to verify Telegram integration works
-- **Cron logging:** Log each cron execution with timestamp and number of reminders sent for debugging
-- **Error handling:** Telegram API failures should be logged but not crash the application
+- All date calculations respect TZ environment variable (IANA format: "Asia/Singapore")
+- Cron runs daily at configured time, sends reminders only for events happening today
+- Telegram failures logged but don't crash app
+- Event labels are freeform custom text input
+- Telegram notifications sent via bot include: event name, label, and notes (optional) - no year count needed
