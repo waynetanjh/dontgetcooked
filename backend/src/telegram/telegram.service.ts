@@ -244,10 +244,10 @@ You'll receive daily notifications for your events!
       return false;
     }
 
-    let message = `🎂 ${name}`;
+    let message = `📅 ${name}`;
 
     if (eventLabel) {
-      message += `'s ${eventLabel}`;
+      message += ` [${eventLabel}]`;
     }
 
     if (notes) {
