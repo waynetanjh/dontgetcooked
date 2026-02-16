@@ -32,10 +32,11 @@ export class TelegramController {
   }
 
   @Post('today-birthdays')
-  async sendTodayBirthdays() {
+  async sendTodayBirthdays(@Request() req) {
     try {
+      const userId = req.user.id;
       const result =
-        await this.schedulerService.sendTodaysBirthdayNotifications();
+        await this.schedulerService.sendTodaysBirthdayNotificationsForUser(userId);
 
       if (result.count === 0) {
         return {
