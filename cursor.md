@@ -3,6 +3,10 @@
 ## Project Overview
 Personal web app to track birthdays, anniversaries, and important events with automated Telegram reminders. Single-user application.
 
+Files should be seperated in terms of 
+- backend for all backend files 
+- frontend for all frontend files
+
 ## Tech Stack
 - **Frontend:** Next.js 14+ (App Router), TypeScript, TailwindCSS
 - **Backend:** NestJS, TypeScript
