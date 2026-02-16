@@ -21,28 +21,28 @@ import { peopleApi } from "@/lib/api";
 import { toast } from "sonner";
 
 interface EventListItemProps {
-  person: UpcomingEvent;
+  event: UpcomingEvent;
   onDelete?: () => void;
 }
 
-export function EventListItem({ person, onDelete }: EventListItemProps) {
+export function EventListItem({ event, onDelete }: EventListItemProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   
-  const eventDate = new Date(person.eventDate);
+  const eventDate = new Date(event.eventDate);
   const countdown = getCountdownText(eventDate);
   const yearCount = getYearCount(eventDate);
   const isToday = countdown === "Today!";
 
   const handleEdit = () => {
-    router.push(`/dashboard/people/${person.id}/edit`);
+    router.push(`/dashboard/people/${event.id}/edit`);
   };
 
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
-      await peopleApi.delete(person.id);
+      await peopleApi.delete(event.id);
       toast.success("Event deleted successfully");
       setShowDeleteDialog(false);
       onDelete?.();
@@ -64,11 +64,11 @@ export function EventListItem({ person, onDelete }: EventListItemProps) {
         <div className="flex-1 min-w-0 pr-4">
           <div className="flex items-center gap-2 mb-1">
             <div className={`font-medium truncate ${isToday ? "text-primary" : ""}`}>
-              {person.name}
+              {event.name}
             </div>
-            {person.eventLabel && (
+            {event.eventLabel && (
               <Badge variant="secondary" className="text-xs shrink-0">
-                {person.eventLabel}
+                {event.eventLabel}
               </Badge>
             )}
           </div>
@@ -119,8 +119,8 @@ export function EventListItem({ person, onDelete }: EventListItemProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the event for <strong>{person.name}</strong>
-              {person.eventLabel && ` (${person.eventLabel})`}. This action cannot be undone.
+              This will permanently delete the event for <strong>{event.name}</strong>
+              {event.eventLabel && ` (${event.eventLabel})`}. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

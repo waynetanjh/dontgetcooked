@@ -23,20 +23,9 @@ model User {
   @@map("users")
 }
 
-model Person {
-  id        String   @id @default(uuid())
-  name      String
-  events    Event[]
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  
-  @@map("persons")
-}
-
 model Event {
   id         String   @id @default(uuid())
-  personId   String   @map("person_id")
-  person     Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  name       String
   eventDate  DateTime @db.Date @map("event_date")
   eventLabel String?  @map("event_label")
   notes      String?

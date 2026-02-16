@@ -111,7 +111,7 @@ export function UpcomingEvents() {
           {events.map((event) => (
             <EventListItem 
               key={event.id} 
-              person={event} 
+              event={event} 
               onDelete={loadEvents}
             />
           ))}
