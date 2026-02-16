@@ -109,7 +109,11 @@ export function UpcomingEvents() {
         </h3>
         <Card className="overflow-hidden">
           {events.map((event) => (
-            <EventListItem key={event.id} person={event} />
+            <EventListItem 
+              key={event.id} 
+              person={event} 
+              onDelete={loadEvents}
+            />
           ))}
         </Card>
       </div>

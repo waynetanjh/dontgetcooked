@@ -111,7 +111,7 @@ export default function EditPersonPage({
       <Link href="/dashboard/people">
         <Button variant="ghost" size="sm">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to People
+          Back to Home
         </Button>
       </Link>
 
