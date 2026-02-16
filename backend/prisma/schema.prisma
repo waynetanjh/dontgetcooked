@@ -24,6 +24,15 @@ model User {
   @@map("users")
 }
 
+model PendingTelegramLink {
+  id               String   @id @default(uuid())
+  telegramUsername String   @unique @map("telegram_username")
+  chatId           BigInt   @map("chat_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  
+  @@map("pending_telegram_links")
+}
+
 model Event {
   id         String   @id @default(uuid())
   name       String

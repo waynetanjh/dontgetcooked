@@ -104,30 +104,35 @@ Notifications are sent once daily at 9:00 AM (SGT) if there are any events for t
           `Chat ${chatId} linked to user ${user.email} (@${telegramUsername})`,
         );
       } else {
-        // No account found with this username
-        const noAccountMessage = `
-Hello @${telegramUsername}! 👋
+        // No account yet — save pending link so we can auto-link on registration
+        await this.prisma.pendingTelegramLink.upsert({
+          where: { telegramUsername },
+          update: { chatId: BigInt(chatId) },
+          create: {
+            telegramUsername,
+            chatId: BigInt(chatId),
+          },
+        });
 
-⚠️ <b>Account Not Found</b>
+        const welcomeMessage = `
+Hello ${displayName}! 👋
 
-We couldn't find an account registered with your Telegram username (@${telegramUsername}).
+Welcome to <b>Don't Get Cooked</b> — your personal event reminder bot! 🎂
 
-<b>To get started:</b>
-1. Create an account at <a href="https://dontgetcooked.vercel.app">dontgetcooked.vercel.app</a>
-2. Use <b>@${telegramUsername}</b> as your Telegram username during registration
-3. Come back here and press /start again
+<b>To complete setup:</b>
+1. Go to <a href="https://dontgetcooked.vercel.app">dontgetcooked.vercel.app</a>
+2. Create an account using <b>@${telegramUsername}</b> as your Telegram username
+3. That's it! I'll message you here once your account is linked ✅
 
-Once linked, you can test your notifications from the <b>Settings</b> page in the app.
-
-Notifications are sent once daily at 9:00 AM (SGT) if there are any events for the day.
+Once set up, you'll receive daily notifications at 9:00 AM (SGT) for your events.
         `.trim();
 
-        await this.bot.sendMessage(chatId, noAccountMessage, {
+        await this.bot.sendMessage(chatId, welcomeMessage, {
           parse_mode: 'HTML',
         });
 
         this.logger.log(
-          `No user found for Telegram username @${telegramUsername}`,
+          `Saved pending Telegram link for @${telegramUsername} (chat ${chatId})`,
         );
       }
     });

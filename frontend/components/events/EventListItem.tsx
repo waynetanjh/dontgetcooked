@@ -35,7 +35,7 @@ export function EventListItem({ event, onDelete }: EventListItemProps) {
   const yearCount = getYearCount(eventDate);
 
   const handleEdit = () => {
-    router.push(`/dashboard/people/${event.id}/edit`);
+    router.push(`/dashboard/events/${event.id}/edit`);
   };
 
   const handleDelete = async () => {

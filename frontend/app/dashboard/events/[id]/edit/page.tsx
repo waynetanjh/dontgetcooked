@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import type { EventFormData } from "@/lib/validations";
 import type { Event } from "@/types";
 
-export default function EditPersonPage({ 
+export default function EditEventPage({ 
   params 
 }: { 
   params: Promise<{ id: string }> | { id: string } 
@@ -21,26 +21,26 @@ export default function EditPersonPage({
   const [isLoading, setIsLoading] = useState(false);
   const [event, setEvent] = useState<Event | null>(null);
   const [isFetching, setIsFetching] = useState(true);
-  const [personId, setPersonId] = useState<string>("");
+  const [eventId, setEventId] = useState<string>("");
 
   useEffect(() => {
     async function resolveParams() {
       const resolvedParams = await Promise.resolve(params);
-      setPersonId(resolvedParams.id);
+      setEventId(resolvedParams.id);
     }
     resolveParams();
   }, [params]);
 
   useEffect(() => {
-    if (personId) {
-      loadPerson();
+    if (eventId) {
+      loadEvent();
     }
-  }, [personId]);
+  }, [eventId]);
 
-  const loadPerson = async () => {
+  const loadEvent = async () => {
     try {
       setIsFetching(true);
-      const data = await peopleApi.getById(personId);
+      const data = await peopleApi.getById(eventId);
       setEvent(data);
     } catch (error) {
       console.error("Failed to load event:", error);
@@ -61,7 +61,7 @@ export default function EditPersonPage({
       const day = String(data.eventDate.getDate()).padStart(2, '0');
       const dateString = `${year}-${month}-${day}`;
 
-      await peopleApi.update(personId, {
+      await peopleApi.update(eventId, {
         name: data.name,
         eventDate: dateString,
         eventLabel: data.eventLabel,

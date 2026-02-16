@@ -11,7 +11,7 @@ import { peopleApi } from "@/lib/api";
 import { toast } from "sonner";
 import type { EventFormData } from "@/lib/validations";
 
-export default function NewPersonPage() {
+export default function NewEventPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -57,7 +57,7 @@ export default function NewPersonPage() {
       {/* Form Card */}
       <Card className="max-w-2xl">
         <CardHeader>
-          <CardTitle>Add New Person</CardTitle>
+          <CardTitle>Add New Event</CardTitle>
           <CardDescription>
             Add a person and their special event date
           </CardDescription>

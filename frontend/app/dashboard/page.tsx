@@ -14,7 +14,7 @@ export default function DashboardPage() {
             Never miss an important date
           </p>
         </div>
-        <Link href="/dashboard/people/new">
+        <Link href="/dashboard/events/add">
           <Button size="sm">
             <Plus className="mr-2 h-4 w-4" />
             Add Event

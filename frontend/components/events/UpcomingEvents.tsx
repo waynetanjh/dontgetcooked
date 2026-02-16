@@ -87,7 +87,7 @@ export function UpcomingEvents() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground mb-4">No upcoming events yet</p>
-        <Link href="/dashboard/people/new">
+        <Link href="/dashboard/events/add">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Add Your First Event

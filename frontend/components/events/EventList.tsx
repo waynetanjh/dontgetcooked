@@ -46,7 +46,7 @@ export function EventList() {
   };
 
   const handleEdit = (id: string) => {
-    router.push(`/dashboard/people/${id}/edit`);
+    router.push(`/dashboard/events/${id}/edit`);
   };
 
   const handleDeleteConfirm = async () => {
@@ -87,7 +87,7 @@ export function EventList() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground mb-4">No events added yet</p>
-        <Link href="/dashboard/people/new">
+        <Link href="/dashboard/events/add">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Add Your First Event

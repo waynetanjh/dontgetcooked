@@ -39,10 +39,9 @@ Files should be seperated in terms of
   - "In X days" for future events
 
 ### 3. Telegram Notifications (Per-User Auto-Linking)
-- **Auto-linking System:**
-  - Users register with their Telegram username (e.g., @johnsmith)
-  - Users start conversation with bot using `/start` command
-  - Bot automatically links their chat to their account
+- **Auto-linking System (two flows):**
+  - **Flow A — Telegram first:** User presses `/start` before creating an account. Bot saves their chatId and username to `PendingTelegramLink` table and sends instructions to register. When user creates an account, the system auto-links their chatId and sends a confirmation message via Telegram.
+  - **Flow B — Account first:** User registers on the website first, then presses `/start`. Bot finds their account by Telegram username and links the chatId directly (original flow).
   - No manual chatId configuration needed
   - Commands: `/start` (link), `/unlink` (unlink), `/status` (check status)
 - **Automated daily cron job:**
@@ -74,10 +73,11 @@ Files should be seperated in terms of
 - Events sync as recurring yearly reminders in external calendars
 
 ### 5. Authentication & Security
-- Single-user system:
-  - Simple registration (one-time setup)
+- Multi-user system:
+  - Open registration for multiple users
+  - Each user manages their own events independently
   - Email + password login
-  - No multi-user complexity needed
+  - Designed to serve at least 10+ concurrent users
 - JWT-based authentication:
   - Tokens generated on login
   - Stored in NextAuth.js session on frontend
@@ -99,11 +99,19 @@ model User {
   email            String    @unique
   password         String    // bcrypt hashed
   telegramUsername String    @map("telegram_username")
-  chatId           BigInt?   @map("chat_id") // Auto-linked via /start command
+  chatId           BigInt?   @map("chat_id") // Auto-linked via /start command or pending link
   chatLinkedAt     DateTime? @map("chat_linked_at")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
   @@map("users")
+}
+
+model PendingTelegramLink {
+  id               String   @id @default(uuid())
+  telegramUsername String   @unique @map("telegram_username")
+  chatId           BigInt   @map("chat_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  @@map("pending_telegram_links")
 }
 
 model Event {
@@ -140,6 +148,8 @@ src/
 - **Telegram:** 
   - Uses long-polling to receive `/start`, `/unlink`, `/status` commands
   - Auto-links chatId to user account based on Telegram username
+  - If `/start` is pressed before account creation, saves pending link and auto-links on registration
+  - Sends Telegram confirmation message when pending link is resolved on registration
   - Test endpoint sends to authenticated user's linked chat
   - Per-user notifications (each user receives their own Telegram alerts)
 - **Scheduler:** 
