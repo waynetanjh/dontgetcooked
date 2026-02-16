@@ -63,9 +63,12 @@ export function UpcomingEvents() {
       setIsLoading(true);
       const data = await eventsApi.getUpcoming();
       setEvents(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to load upcoming events:", error);
-      toast.error("Failed to load upcoming events");
+      // Don't show toast for 401 errors (user will be signed out)
+      if (error?.response?.status !== 401) {
+        toast.error("Failed to load upcoming events");
+      }
     } finally {
       setIsLoading(false);
     }

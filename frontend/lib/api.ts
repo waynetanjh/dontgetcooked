@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getSession } from "next-auth/react";
+import { getSession, signOut } from "next-auth/react";
 import type { Event, UpcomingEvent, AuthResponse, LoginCredentials, RegisterCredentials } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -26,14 +26,43 @@ api.interceptors.request.use(
   }
 );
 
+// Flag to prevent multiple simultaneous signouts
+let isSigningOut = false;
+let signOutTimeout: NodeJS.Timeout | null = null;
+
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
-      // Redirect to login on unauthorized
-      if (typeof window !== "undefined") {
-        window.location.href = "/";
+      // Sign out to clear NextAuth session and prevent redirect loop
+      if (typeof window !== "undefined" && !isSigningOut) {
+        isSigningOut = true;
+        
+        // Set a timeout to reset the flag in case signOut hangs
+        if (signOutTimeout) clearTimeout(signOutTimeout);
+        signOutTimeout = setTimeout(() => {
+          isSigningOut = false;
+          signOutTimeout = null;
+        }, 3000);
+        
+        // Clear the session and redirect
+        try {
+          await signOut({ 
+            redirect: true, 
+            callbackUrl: "/?session=expired" 
+          });
+        } catch (signOutError) {
+          console.error("Error signing out:", signOutError);
+          // Fallback to hard redirect if signOut fails
+          window.location.href = "/?session=expired";
+        } finally {
+          // Clear timeout since we're done
+          if (signOutTimeout) {
+            clearTimeout(signOutTimeout);
+            signOutTimeout = null;
+          }
+        }
       }
     }
     return Promise.reject(error);
