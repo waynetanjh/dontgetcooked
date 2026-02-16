@@ -38,22 +38,29 @@ Files should be seperated in terms of
   - "Tomorrow" for next day
   - "In X days" for future events
 
-### 3. Telegram Notifications
-- Automated daily cron job:
+### 3. Telegram Notifications (Per-User Auto-Linking)
+- **Auto-linking System:**
+  - Users register with their Telegram username (e.g., @johnsmith)
+  - Users start conversation with bot using `/start` command
+  - Bot automatically links their chat to their account
+  - No manual chatId configuration needed
+  - Commands: `/start` (link), `/unlink` (unlink), `/status` (check status)
+- **Automated daily cron job:**
   - Runs at configured time (default 9:00 AM)
-  - Checks all events for today's date
-  - Sends notification for matching events via bot
-- Message format includes:
+  - Sends to all users with linked Telegram chats
+  - Each user receives notifications for today's events
+- **Message format includes:**
   - Event name (e.g., "John's Birthday")
   - Event label if provided (e.g., "Birthday", "Wedding Anniversary")
   - Personal notes if added (optional)
   - Example: "🎂 John's Birthday - Birthday. Note: Loves chocolate cake"
   - Example without notes: "🎉 Sarah's Anniversary - Wedding Anniversary"
-- Test notification button in settings:
-  - Immediately sends test message to verify integration
+- **Test notification button in settings:**
+  - Sends test message to logged-in user's linked chat
   - Message: "🎉 Test notification from Birthday Reminder App! Your notifications are working correctly."
   - Shows success/error feedback in UI
-- Error handling: Log Telegram API failures without crashing app
+- **Error handling:** Log Telegram API failures without crashing app
+- **Bot uses long-polling:** Works on localhost and production without public URL
 
 ### 4. Calendar Integration
 - Export functionality:
@@ -88,26 +95,30 @@ Files should be seperated in terms of
 ## Database Schema (Prisma)
 ```prisma
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String   // bcrypt hashed
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id               String    @id @default(uuid())
+  email            String    @unique
+  password         String    // bcrypt hashed
+  telegramUsername String    @map("telegram_username")
+  chatId           BigInt?   @map("chat_id") // Auto-linked via /start command
+  chatLinkedAt     DateTime? @map("chat_linked_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
   @@map("users")
 }
 
-model Friend {
-  id          String   @id @default(uuid())
-  name        String
-  eventDate   DateTime @db.Date @map("event_date")
-  eventLabel  String?  @map("event_label") // Custom text: "Birthday", "Anniversary", etc.
-  notes       String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  @@map("friends")
+model Event {
+  id         String   @id @default(uuid())
+  name       String   // Person's name (e.g., "John", "Mom")
+  eventDate  DateTime @db.Date @map("event_date")
+  eventLabel String?  @map("event_label") // Custom text: "Birthday", "Anniversary", etc.
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  @@map("events")
 }
 ```
+
+**Design Philosophy:** Single flat Event table stores all information. Multiple events for the same person are just separate records with the same name. Simple, works perfectly for a personal reminder app.
 
 ## Backend Structure (NestJS)
 ```
@@ -116,21 +127,29 @@ src/
 ├── app.module.ts
 ├── prisma/ (module + service, global)
 ├── auth/ (JWT strategy, guards, login/register)
-├── friends/ (CRUD with DTOs, all routes protected)
+├── friends/ (CRUD for events, returns distinct names for autocomplete)
 ├── birthdays/ (upcoming events, .ics export, year calculation)
-├── telegram/ (send messages, test endpoint)
-└── scheduler/ (daily cron job, sends reminders for today's events)
+├── telegram/ (send per-user messages, bot commands, test endpoint)
+└── scheduler/ (daily cron job, sends reminders to all users)
 ```
 
 ### Key Requirements
 - **Auth:** bcrypt passwords, JWT tokens, guards on all routes except auth
+- **Friends/Events:** CRUD operations on Event model, `GET /friends/names/distinct` for autocomplete
 - **Birthdays:** Calculate upcoming events sorted by next occurrence, respect TZ env var
-- **Telegram:** Test endpoint sends: "🎉 Test notification from Birthday Reminder App! Your notifications are working correctly."
-- **Scheduler:** Daily cron at configured time (default 9 AM), sends messages via bot for events happening today with event name, label, and notes (optional) - no year count
+- **Telegram:** 
+  - Uses long-polling to receive `/start`, `/unlink`, `/status` commands
+  - Auto-links chatId to user account based on Telegram username
+  - Test endpoint sends to authenticated user's linked chat
+  - Per-user notifications (each user receives their own Telegram alerts)
+- **Scheduler:** 
+  - Daily cron at configured time (default 9 AM)
+  - Sends to all users with linked chats
+  - Messages include person name, event label, and notes (optional) - no year count
 
 ### API Endpoints
 - **Auth:** `POST /auth/register`, `POST /auth/login`
-- **Friends (protected):** `GET|POST /friends`, `GET|PUT|DELETE /friends/:id`
+- **Friends/Events (protected):** `GET /friends`, `GET /friends/names/distinct`, `POST /friends`, `GET /friends/:id`, `PUT /friends/:id`, `DELETE /friends/:id`
 - **Birthdays (protected):** `GET /birthdays/upcoming`, `GET /birthdays/calendar/export`
 - **Telegram (protected):** `POST /telegram/test`
 
@@ -139,7 +158,7 @@ src/
 DATABASE_URL="postgresql://user:password@localhost:5432/birthdays"
 JWT_SECRET="your-secret"
 TELEGRAM_BOT_TOKEN="bot-token"
-TELEGRAM_CHAT_ID="chat-id"
+# TELEGRAM_CHAT_ID is deprecated - now auto-linked per user via /start command
 TZ="Asia/Singapore"
 CRON_TIME="0 9 * * *"
 PORT=3001
@@ -151,22 +170,28 @@ app/
 ├── page.tsx (login)
 ├── dashboard/
 │   ├── page.tsx (upcoming events)
-│   ├── friends/ (list, new, [id]/edit)
+│   ├── people/ (event list table, new, [id]/edit)
 │   └── settings/ (telegram test, timezone display)
 components/
 ├── auth/ (LoginForm, ProtectedRoute)
-├── friends/ (FriendCard, FriendForm, FriendList)
+├── people/ (columns for data table)
+├── events/ (EventForm with name autocomplete, EventList, EventListItem, UpcomingEvents)
 ├── birthdays/ (BirthdayCard, UpcomingBirthdays)
 └── settings/ (TelegramTest)
 lib/
-├── api.ts (axios with JWT interceptor)
+├── api.ts (axios with JWT interceptor, peopleApi for events)
+├── validations.ts (Zod schemas)
 └── utils.ts
+types/
+└── index.ts (Event, UpcomingEvent interfaces)
 ```
 
 ### Key Requirements
 - **Auth:** NextAuth.js with Credentials provider, JWT in session, middleware protects dashboard
 - **Forms:** react-hook-form + zod validation
-- **UI:** TailwindCSS, responsive, loading states, toast notifications
+- **Name Autocomplete:** HTML5 datalist for simple autocomplete from existing names (prevents typos, no complex UI)
+- **Simple Table View:** Standard data table with sortable columns, search by name
+- **UI:** TailwindCSS, shadcn/ui components, responsive, loading states, toast notifications
 - **Display:** Events sorted chronologically, countdown ("in 5 days", "today!"), year count ("25th birthday")
 
 ### Environment Variables

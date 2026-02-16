@@ -2,9 +2,10 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  telegramUsername?: string;
 }
 
-export interface Person {
+export interface Event {
   id: string;
   name: string;
   eventDate: string; // ISO date string
@@ -14,7 +15,7 @@ export interface Person {
   updatedAt: string;
 }
 
-export interface UpcomingEvent extends Person {
+export interface UpcomingEvent extends Event {
   daysUntil: number;
   yearCount: number;
   nextOccurrence: string;
@@ -24,7 +25,11 @@ export interface AuthResponse {
   success: boolean;
   data: {
     token: string;
-    user: User;
+    user: {
+      id: string;
+      email: string;
+      telegramUsername?: string;
+    };
   };
   message: string;
 }
@@ -35,7 +40,7 @@ export interface LoginCredentials {
 }
 
 export interface RegisterCredentials {
-  name: string;
+  telegramUsername: string;
   email: string;
   password: string;
   confirmPassword: string;

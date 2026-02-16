@@ -28,6 +28,16 @@ export class FriendsController {
     return this.friendsService.findAll();
   }
 
+  @Get('names/distinct')
+  async getDistinctNames() {
+    const names = await this.friendsService.getDistinctNames();
+    return {
+      success: true,
+      data: names,
+      message: 'Distinct names retrieved successfully',
+    };
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.friendsService.findOne(id);

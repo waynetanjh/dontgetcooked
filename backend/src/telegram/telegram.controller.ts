@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request } from '@nestjs/common';
 import { TelegramService } from './telegram.service';
 import { SchedulerService } from '../scheduler/scheduler.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -12,8 +12,9 @@ export class TelegramController {
   ) {}
 
   @Post('test')
-  async test() {
-    const success = await this.telegramService.sendTestMessage();
+  async test(@Request() req) {
+    const userId = req.user.id;
+    const success = await this.telegramService.sendTestMessageToUser(userId);
 
     if (success) {
       return {
@@ -25,7 +26,7 @@ export class TelegramController {
       return {
         success: false,
         data: null,
-        message: 'Failed to send test notification. Please check your Telegram configuration.',
+        message: 'Failed to send test notification. Make sure you have linked your Telegram account by pressing /start in the bot.',
       };
     }
   }

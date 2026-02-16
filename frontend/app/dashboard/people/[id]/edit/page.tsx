@@ -10,7 +10,7 @@ import { EventForm } from "@/components/events/EventForm";
 import { peopleApi } from "@/lib/api";
 import { toast } from "sonner";
 import type { EventFormData } from "@/lib/validations";
-import type { Person } from "@/types";
+import type { Event } from "@/types";
 
 export default function EditPersonPage({ 
   params 
@@ -19,7 +19,7 @@ export default function EditPersonPage({
 }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [person, setPerson] = useState<Person | null>(null);
+  const [event, setEvent] = useState<Event | null>(null);
   const [isFetching, setIsFetching] = useState(true);
   const [personId, setPersonId] = useState<string>("");
 
@@ -41,10 +41,10 @@ export default function EditPersonPage({
     try {
       setIsFetching(true);
       const data = await peopleApi.getById(personId);
-      setPerson(data);
+      setEvent(data);
     } catch (error) {
-      console.error("Failed to load person:", error);
-      toast.error("Failed to load person");
+      console.error("Failed to load event:", error);
+      toast.error("Failed to load event");
       router.push("/dashboard/people");
     } finally {
       setIsFetching(false);
@@ -55,9 +55,15 @@ export default function EditPersonPage({
     try {
       setIsLoading(true);
 
+      // Format date as YYYY-MM-DD to avoid timezone issues
+      const year = data.eventDate.getFullYear();
+      const month = String(data.eventDate.getMonth() + 1).padStart(2, '0');
+      const day = String(data.eventDate.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+
       await peopleApi.update(personId, {
         name: data.name,
-        eventDate: data.eventDate.toISOString(),
+        eventDate: dateString,
         eventLabel: data.eventLabel,
         notes: data.notes,
       });
@@ -95,7 +101,7 @@ export default function EditPersonPage({
     );
   }
 
-  if (!person) {
+  if (!event) {
     return null;
   }
 
@@ -114,12 +120,12 @@ export default function EditPersonPage({
         <CardHeader>
           <CardTitle>Edit Event</CardTitle>
           <CardDescription>
-            Update {person.name}&apos;s event information
+            Update {event.name}&apos;s event information
           </CardDescription>
         </CardHeader>
         <CardContent>
           <EventForm
-            defaultValues={person}
+            defaultValues={event}
             onSubmit={handleSubmit}
             isLoading={isLoading}
             submitLabel="Update Event"

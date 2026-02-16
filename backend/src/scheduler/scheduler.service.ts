@@ -40,12 +40,28 @@ export class SchedulerService {
 
       this.logger.log(`Checking for events on ${todayMonth}/${todayDay}`);
 
-      // Get all friends
-      const friends = await this.prisma.friend.findMany();
+      // Get all users with linked Telegram chats
+      const users = await this.prisma.user.findMany({
+        where: {
+          chatId: {
+            not: null,
+          },
+        },
+      });
+
+      if (users.length === 0) {
+        this.logger.log('No users with linked Telegram chats');
+        return { count: 0, events: [] };
+      }
+
+      this.logger.log(`Found ${users.length} user(s) with linked chats`);
+
+      // Get all events
+      const events = await this.prisma.event.findMany();
 
       // Filter events that match today's date (ignore year)
-      const todaysEvents = friends.filter((friend) => {
-        const eventDate = new Date(friend.eventDate);
+      const todaysEvents = events.filter((event) => {
+        const eventDate = new Date(event.eventDate);
         const eventMonth = eventDate.getMonth() + 1;
         const eventDay = eventDate.getDate();
 
@@ -61,25 +77,33 @@ export class SchedulerService {
 
       const sentEvents: string[] = [];
 
-      // Send notification for each event
-      for (const event of todaysEvents) {
-        try {
-          const success = await this.telegramService.sendBirthdayReminder(
-            event.name,
-            event.eventLabel ?? undefined,
-            event.notes ?? undefined,
-          );
+      // Send notifications to each user
+      for (const user of users) {
+        for (const event of todaysEvents) {
+          try {
+            const success =
+              await this.telegramService.sendBirthdayReminderToUser(
+                user.id,
+                event.name,
+                event.eventLabel ?? undefined,
+                event.notes ?? undefined,
+              );
 
-          if (success) {
-            this.logger.log(`Sent reminder for: ${event.name}`);
-            sentEvents.push(event.name);
-          } else {
-            this.logger.warn(`Failed to send reminder for: ${event.name}`);
+            if (success) {
+              this.logger.log(
+                `Sent reminder for ${event.name} to user ${user.email}`,
+              );
+              sentEvents.push(`${event.name} -> ${user.email}`);
+            } else {
+              this.logger.warn(
+                `Failed to send reminder for ${event.name} to user ${user.email}`,
+              );
+            }
+          } catch (error) {
+            this.logger.error(
+              `Error sending reminder for ${event.name} to ${user.email}: ${error.message}`,
+            );
           }
-        } catch (error) {
-          this.logger.error(
-            `Error sending reminder for ${event.name}: ${error.message}`,
-          );
         }
       }
 

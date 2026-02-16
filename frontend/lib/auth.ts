@@ -10,6 +10,7 @@ declare module "next-auth" {
       id: string;
       name: string;
       email: string;
+      telegramUsername?: string;
     };
   }
 
@@ -17,12 +18,14 @@ declare module "next-auth" {
     id: string;
     name: string;
     email: string;
+    telegramUsername?: string;
     accessToken: string;
   }
 
   interface JWT {
     accessToken?: string;
     id?: string;
+    telegramUsername?: string;
   }
 }
 
@@ -51,8 +54,9 @@ export const authConfig: NextAuthConfig = {
           if (response.data?.token && response.data?.user) {
             return {
               id: response.data.user.id,
-              name: response.data.user.name,
+              name: response.data.user.telegramUsername || response.data.user.email,
               email: response.data.user.email,
+              telegramUsername: response.data.user.telegramUsername,
               accessToken: response.data.token,
             };
           }
@@ -70,6 +74,7 @@ export const authConfig: NextAuthConfig = {
       if (user) {
         token.accessToken = user.accessToken;
         token.id = user.id;
+        token.telegramUsername = user.telegramUsername;
       }
       return token;
     },
@@ -77,6 +82,7 @@ export const authConfig: NextAuthConfig = {
       if (token) {
         session.accessToken = token.accessToken as string | undefined;
         session.user.id = token.id as string;
+        session.user.telegramUsername = token.telegramUsername as string | undefined;
       }
       return session;
     },

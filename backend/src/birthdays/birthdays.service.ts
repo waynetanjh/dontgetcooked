@@ -11,7 +11,7 @@ export class BirthdaysService {
 
   async getUpcoming() {
     const timezone = this.configService.get<string>('TZ') || 'Asia/Singapore';
-    const friends = await this.prisma.friend.findMany();
+    const events = await this.prisma.event.findMany();
 
     const today = new Date(
       new Date().toLocaleString('en-US', { timeZone: timezone }),
@@ -19,8 +19,8 @@ export class BirthdaysService {
     const currentYear = today.getFullYear();
 
     // Calculate next occurrence for each event
-    const upcomingEvents = friends.map((friend) => {
-      const eventDate = new Date(friend.eventDate);
+    const upcomingEvents = events.map((event) => {
+      const eventDate = new Date(event.eventDate);
       const month = eventDate.getMonth();
       const day = eventDate.getDate();
       const originalYear = eventDate.getFullYear();
@@ -41,7 +41,7 @@ export class BirthdaysService {
       const yearCount = nextOccurrence.getFullYear() - originalYear;
 
       return {
-        ...friend,
+        ...event,
         nextOccurrence: nextOccurrence.toISOString(),
         daysUntil,
         yearCount,
@@ -59,7 +59,7 @@ export class BirthdaysService {
   }
 
   async exportCalendar() {
-    const friends = await this.prisma.friend.findMany();
+    const events = await this.prisma.event.findMany();
     
     // Generate iCalendar format
     let icsContent = [
@@ -70,20 +70,20 @@ export class BirthdaysService {
       'METHOD:PUBLISH',
     ];
 
-    friends.forEach((friend) => {
-      const eventDate = new Date(friend.eventDate);
+    events.forEach((event) => {
+      const eventDate = new Date(event.eventDate);
       const year = eventDate.getFullYear();
       const month = String(eventDate.getMonth() + 1).padStart(2, '0');
       const day = String(eventDate.getDate()).padStart(2, '0');
       
       const dateStr = `${year}${month}${day}`;
-      const uid = `${friend.id}@birthdayreminder.app`;
+      const uid = `${event.id}@birthdayreminder.app`;
       
-      const summary = friend.eventLabel
-        ? `${friend.name}'s ${friend.eventLabel}`
-        : friend.name;
+      const summary = event.eventLabel
+        ? `${event.name}'s ${event.eventLabel}`
+        : event.name;
       
-      const description = friend.notes ? friend.notes : '';
+      const description = event.notes ? event.notes : '';
 
       icsContent.push(
         'BEGIN:VEVENT',

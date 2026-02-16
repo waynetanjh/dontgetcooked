@@ -12,10 +12,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { eventSchema, type EventFormData } from "@/lib/validations";
 import { cn } from "@/lib/utils";
-import type { Person } from "@/types";
+import type { Event } from "@/types";
+import { useEffect, useState } from "react";
+import { peopleApi } from "@/lib/api";
 
 interface EventFormProps {
-  defaultValues?: Partial<Person>;
+  defaultValues?: Partial<Event>;
   onSubmit: (data: EventFormData) => Promise<void>;
   isLoading: boolean;
   submitLabel?: string;
@@ -27,6 +29,8 @@ export function EventForm({
   isLoading,
   submitLabel = "Save Event",
 }: EventFormProps) {
+  const [existingNames, setExistingNames] = useState<string[]>([]);
+
   const {
     register,
     handleSubmit,
@@ -47,22 +51,45 @@ export function EventForm({
 
   const selectedDate = watch("eventDate");
 
+  useEffect(() => {
+    loadExistingNames();
+  }, []);
+
+  const loadExistingNames = async () => {
+    try {
+      const names = await peopleApi.getDistinctNames();
+      setExistingNames(names);
+    } catch (error) {
+      console.error("Failed to load existing names:", error);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Name */}
+      {/* Name with datalist for autocomplete */}
       <div className="space-y-2">
         <Label htmlFor="name">
           Name <span className="text-destructive">*</span>
         </Label>
         <Input
           id="name"
+          list="existing-names"
           placeholder="e.g., John, Mom, Sarah & David"
           {...register("name")}
           disabled={isLoading}
+          autoComplete="off"
         />
+        <datalist id="existing-names">
+          {existingNames.map((name) => (
+            <option key={name} value={name} />
+          ))}
+        </datalist>
         {errors.name && (
           <p className="text-sm text-destructive">{errors.name.message}</p>
         )}
+        <p className="text-xs text-muted-foreground">
+          Start typing to see existing names, or enter a new name
+        </p>
       </div>
 
       {/* Event Date */}

@@ -19,9 +19,15 @@ export default function NewPersonPage() {
     try {
       setIsLoading(true);
 
+      // Format date as YYYY-MM-DD to avoid timezone issues
+      const year = data.eventDate.getFullYear();
+      const month = String(data.eventDate.getMonth() + 1).padStart(2, '0');
+      const day = String(data.eventDate.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+
       await peopleApi.create({
         name: data.name,
-        eventDate: data.eventDate.toISOString(),
+        eventDate: dateString,
         eventLabel: data.eventLabel,
         notes: data.notes,
       });

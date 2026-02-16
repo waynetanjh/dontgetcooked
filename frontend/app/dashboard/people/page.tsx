@@ -9,20 +9,20 @@ export default function PeoplePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">People</h1>
+          <h1 className="text-3xl font-bold tracking-tight">People & Events</h1>
           <p className="text-muted-foreground mt-2">
-            Manage all your important events
+            Manage all your important dates
           </p>
         </div>
         <Link href="/dashboard/people/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
-            Add Person
+            Add Event
           </Button>
         </Link>
       </div>
 
-      {/* People List */}
+      {/* Events List */}
       <EventList />
     </div>
   );

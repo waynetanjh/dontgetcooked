@@ -1,6 +1,6 @@
 import axios from "axios";
 import { getSession } from "next-auth/react";
-import type { Person, UpcomingEvent, AuthResponse, LoginCredentials, RegisterCredentials } from "@/types";
+import type { Event, UpcomingEvent, AuthResponse, LoginCredentials, RegisterCredentials } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -49,7 +49,7 @@ export const authApi = {
 
   register: async (data: RegisterCredentials): Promise<AuthResponse> => {
     const response = await axios.post(`${API_URL}/auth/register`, {
-      name: data.name,
+      telegramUsername: data.telegramUsername,
       email: data.email,
       password: data.password,
     });
@@ -57,26 +57,31 @@ export const authApi = {
   },
 };
 
-// People/Events API
+// Events API
 export const peopleApi = {
-  getAll: async (): Promise<Person[]> => {
+  getAll: async (): Promise<Event[]> => {
     const response = await api.get("/friends");
-    return response.data.data; // Access nested data property
+    return response.data.data;
   },
 
-  getById: async (id: string): Promise<Person> => {
+  getById: async (id: string): Promise<Event> => {
     const response = await api.get(`/friends/${id}`);
-    return response.data.data; // Access nested data property
+    return response.data.data;
   },
 
-  create: async (data: Omit<Person, "id" | "createdAt" | "updatedAt">): Promise<Person> => {
+  getDistinctNames: async (): Promise<string[]> => {
+    const response = await api.get("/friends/names/distinct");
+    return response.data.data;
+  },
+
+  create: async (data: Omit<Event, "id" | "createdAt" | "updatedAt">): Promise<Event> => {
     const response = await api.post("/friends", data);
-    return response.data.data; // Access nested data property
+    return response.data.data;
   },
 
-  update: async (id: string, data: Partial<Omit<Person, "id" | "createdAt" | "updatedAt">>): Promise<Person> => {
+  update: async (id: string, data: Partial<Omit<Event, "id" | "createdAt" | "updatedAt">>): Promise<Event> => {
     const response = await api.put(`/friends/${id}`, data);
-    return response.data.data; // Access nested data property
+    return response.data.data;
   },
 
   delete: async (id: string): Promise<void> => {

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { EventCard } from "./EventCard";
 import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,28 +17,29 @@ import {
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { peopleApi } from "@/lib/api";
-import type { Person } from "@/types";
+import type { Event } from "@/types";
 import { toast } from "sonner";
+import { createPeopleColumns } from "@/components/people/columns";
 
 export function EventList() {
   const router = useRouter();
-  const [people, setPeople] = useState<Person[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    loadPeople();
+    loadEvents();
   }, []);
 
-  const loadPeople = async () => {
+  const loadEvents = async () => {
     try {
       setIsLoading(true);
       const data = await peopleApi.getAll();
-      setPeople(data);
+      setEvents(data);
     } catch (error) {
-      console.error("Failed to load people:", error);
-      toast.error("Failed to load people");
+      console.error("Failed to load events:", error);
+      toast.error("Failed to load events");
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +56,7 @@ export function EventList() {
       setIsDeleting(true);
       await peopleApi.delete(deleteId);
       toast.success("Event deleted successfully");
-      setPeople(people.filter((p) => p.id !== deleteId));
+      setEvents(events.filter((e) => e.id !== deleteId));
       setDeleteId(null);
     } catch (error) {
       console.error("Failed to delete event:", error);
@@ -65,24 +66,31 @@ export function EventList() {
     }
   };
 
+  const columns = useMemo(
+    () =>
+      createPeopleColumns({
+        onEdit: handleEdit,
+        onDelete: (id) => setDeleteId(id),
+      }),
+    []
+  );
+
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
-        ))}
+      <div className="border rounded-lg">
+        <div className="h-64 bg-muted animate-pulse rounded-lg" />
       </div>
     );
   }
 
-  if (people.length === 0) {
+  if (events.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground mb-4">No people added yet</p>
+        <p className="text-muted-foreground mb-4">No events added yet</p>
         <Link href="/dashboard/people/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
-            Add Your First Person
+            Add Your First Event
           </Button>
         </Link>
       </div>
@@ -91,16 +99,12 @@ export function EventList() {
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {people.map((person) => (
-          <EventCard
-            key={person.id}
-            person={person}
-            onEdit={handleEdit}
-            onDelete={(id) => setDeleteId(id)}
-          />
-        ))}
-      </div>
+      <DataTable
+        columns={columns}
+        data={events}
+        searchKey="name"
+        searchPlaceholder="Search by name..."
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>

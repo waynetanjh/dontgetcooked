@@ -67,17 +67,22 @@ export function RegisterForm() {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="telegramUsername">
+              Telegram Username <span className="text-destructive">*</span>
+            </Label>
             <Input
-              id="name"
+              id="telegramUsername"
               type="text"
-              placeholder="John Doe"
-              {...register("name")}
+              placeholder="username (without @)"
+              {...register("telegramUsername")}
               disabled={isLoading}
             />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
+            {errors.telegramUsername && (
+              <p className="text-sm text-destructive">{errors.telegramUsername.message}</p>
             )}
+            <p className="text-xs text-muted-foreground">
+              Your Telegram username (without @). Used to link notifications.
+            </p>
           </div>
 
           <div className="space-y-2">

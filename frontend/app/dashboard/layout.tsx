@@ -8,7 +8,6 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { 
   Home, 
-  Users, 
   Settings, 
   LogOut,
   Menu,
@@ -19,7 +18,6 @@ import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Home", href: "/dashboard", icon: Home },
-  { name: "People", href: "/dashboard/people", icon: Users },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
@@ -41,7 +39,14 @@ export default function DashboardLayout({
       {/* Mobile Header */}
       <div className="lg:hidden sticky top-0 z-50 bg-white border-b">
         <div className="flex items-center justify-between p-4">
-          <h1 className="text-xl font-bold">Don&apos;t Get Cooked</h1>
+          <div>
+            <h1 className="text-xl font-bold">Don&apos;t Get Cooked</h1>
+            {session?.user?.telegramUsername && (
+              <p className="text-xs font-medium">
+                {session.user.telegramUsername}
+              </p>
+            )}
+          </div>
           <Button
             variant="ghost"
             size="icon"
@@ -101,7 +106,9 @@ export default function DashboardLayout({
             {/* User Info */}
             <div className="p-6 border-b">
               <div className="space-y-1">
-                <p className="text-sm font-medium">{session?.user?.name}</p>
+                {session?.user?.telegramUsername && (
+                  <p className="text-sm font-medium">Telegram Username <br /> @{session.user.telegramUsername}</p>
+                )}
                 <p className="text-xs text-muted-foreground">{session?.user?.email}</p>
               </div>
             </div>

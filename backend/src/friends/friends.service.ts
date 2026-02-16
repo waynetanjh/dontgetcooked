@@ -8,7 +8,7 @@ export class FriendsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createFriendDto: CreateFriendDto) {
-    const friend = await this.prisma.friend.create({
+    const event = await this.prisma.event.create({
       data: {
         name: createFriendDto.name,
         eventDate: new Date(createFriendDto.eventDate),
@@ -19,13 +19,13 @@ export class FriendsService {
 
     return {
       success: true,
-      data: friend,
+      data: event,
       message: 'Event created successfully',
     };
   }
 
   async findAll() {
-    const friends = await this.prisma.friend.findMany({
+    const events = await this.prisma.event.findMany({
       orderBy: {
         createdAt: 'desc',
       },
@@ -33,38 +33,38 @@ export class FriendsService {
 
     return {
       success: true,
-      data: friends,
+      data: events,
       message: 'Events retrieved successfully',
     };
   }
 
   async findOne(id: string) {
-    const friend = await this.prisma.friend.findUnique({
+    const event = await this.prisma.event.findUnique({
       where: { id },
     });
 
-    if (!friend) {
+    if (!event) {
       throw new NotFoundException('Event not found');
     }
 
     return {
       success: true,
-      data: friend,
+      data: event,
       message: 'Event retrieved successfully',
     };
   }
 
   async update(id: string, updateFriendDto: UpdateFriendDto) {
-    // Check if friend exists
-    const existingFriend = await this.prisma.friend.findUnique({
+    // Check if event exists
+    const existingEvent = await this.prisma.event.findUnique({
       where: { id },
     });
 
-    if (!existingFriend) {
+    if (!existingEvent) {
       throw new NotFoundException('Event not found');
     }
 
-    const friend = await this.prisma.friend.update({
+    const event = await this.prisma.event.update({
       where: { id },
       data: {
         ...(updateFriendDto.name && { name: updateFriendDto.name }),
@@ -82,22 +82,22 @@ export class FriendsService {
 
     return {
       success: true,
-      data: friend,
+      data: event,
       message: 'Event updated successfully',
     };
   }
 
   async remove(id: string) {
-    // Check if friend exists
-    const existingFriend = await this.prisma.friend.findUnique({
+    // Check if event exists
+    const existingEvent = await this.prisma.event.findUnique({
       where: { id },
     });
 
-    if (!existingFriend) {
+    if (!existingEvent) {
       throw new NotFoundException('Event not found');
     }
 
-    await this.prisma.friend.delete({
+    await this.prisma.event.delete({
       where: { id },
     });
 
@@ -106,5 +106,16 @@ export class FriendsService {
       data: null,
       message: 'Event deleted successfully',
     };
+  }
+
+  // Get distinct names for autocomplete
+  async getDistinctNames(): Promise<string[]> {
+    const events = await this.prisma.event.findMany({
+      select: { name: true },
+      distinct: ['name'],
+      orderBy: { name: 'asc' },
+    });
+
+    return events.map((e) => e.name);
   }
 }
