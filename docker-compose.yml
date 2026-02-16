@@ -5,6 +5,7 @@ services:
     image: postgres:15-alpine
     container_name: dontgetcooked-db
     restart: unless-stopped
+    command: postgres -c password_encryption=md5
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

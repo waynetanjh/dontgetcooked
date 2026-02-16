@@ -21,8 +21,12 @@ export interface UpcomingEvent extends Person {
 }
 
 export interface AuthResponse {
-  token: string;
-  user: User;
+  success: boolean;
+  data: {
+    token: string;
+    user: User;
+  };
+  message: string;
 }
 
 export interface LoginCredentials {

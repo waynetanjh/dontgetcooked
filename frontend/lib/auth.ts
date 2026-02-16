@@ -48,12 +48,12 @@ export const authConfig: NextAuthConfig = {
           // Call backend API to authenticate
           const response = await authApi.login({ email, password });
 
-          if (response.token && response.user) {
+          if (response.data?.token && response.data?.user) {
             return {
-              id: response.user.id,
-              name: response.user.name,
-              email: response.user.email,
-              accessToken: response.token,
+              id: response.data.user.id,
+              name: response.data.user.name,
+              email: response.data.user.email,
+              accessToken: response.data.token,
             };
           }
 

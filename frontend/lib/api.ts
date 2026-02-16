@@ -61,22 +61,22 @@ export const authApi = {
 export const peopleApi = {
   getAll: async (): Promise<Person[]> => {
     const response = await api.get("/friends");
-    return response.data;
+    return response.data.data; // Access nested data property
   },
 
   getById: async (id: string): Promise<Person> => {
     const response = await api.get(`/friends/${id}`);
-    return response.data;
+    return response.data.data; // Access nested data property
   },
 
   create: async (data: Omit<Person, "id" | "createdAt" | "updatedAt">): Promise<Person> => {
     const response = await api.post("/friends", data);
-    return response.data;
+    return response.data.data; // Access nested data property
   },
 
   update: async (id: string, data: Partial<Omit<Person, "id" | "createdAt" | "updatedAt">>): Promise<Person> => {
     const response = await api.put(`/friends/${id}`, data);
-    return response.data;
+    return response.data.data; // Access nested data property
   },
 
   delete: async (id: string): Promise<void> => {
@@ -88,7 +88,7 @@ export const peopleApi = {
 export const eventsApi = {
   getUpcoming: async (): Promise<UpcomingEvent[]> => {
     const response = await api.get("/birthdays/upcoming");
-    return response.data;
+    return response.data.data; // Access nested data property
   },
 
   exportCalendar: async (): Promise<Blob> => {
@@ -101,9 +101,9 @@ export const eventsApi = {
 
 // Telegram API
 export const telegramApi = {
-  sendTest: async (): Promise<{ message: string }> => {
+  sendTest: async (): Promise<{ success: boolean; message: string }> => {
     const response = await api.post("/telegram/test");
-    return response.data;
+    return { success: response.data.success, message: response.data.message };
   },
 };
 

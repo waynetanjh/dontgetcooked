@@ -23,6 +23,7 @@ export class BirthdaysService {
       const eventDate = new Date(friend.eventDate);
       const month = eventDate.getMonth();
       const day = eventDate.getDate();
+      const originalYear = eventDate.getFullYear();
 
       // Create next occurrence in current year
       let nextOccurrence = new Date(currentYear, month, day);
@@ -36,10 +37,14 @@ export class BirthdaysService {
         (nextOccurrence.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
       );
 
+      // Calculate year count (how many years since the original date)
+      const yearCount = nextOccurrence.getFullYear() - originalYear;
+
       return {
         ...friend,
         nextOccurrence: nextOccurrence.toISOString(),
         daysUntil,
+        yearCount,
       };
     });
 
