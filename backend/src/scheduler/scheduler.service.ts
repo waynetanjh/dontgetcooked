@@ -56,8 +56,8 @@ export class SchedulerService {
         try {
           const success = await this.telegramService.sendBirthdayReminder(
             event.name,
-            event.eventLabel,
-            event.notes,
+            event.eventLabel ?? undefined,
+            event.notes ?? undefined,
           );
 
           if (success) {

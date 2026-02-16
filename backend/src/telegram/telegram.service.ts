@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as TelegramBot from 'node-telegram-bot-api';
+import TelegramBot from 'node-telegram-bot-api';
 
 @Injectable()
 export class TelegramService {
@@ -10,7 +10,7 @@ export class TelegramService {
 
   constructor(private configService: ConfigService) {
     const token = this.configService.get<string>('TELEGRAM_BOT_TOKEN');
-    this.chatId = this.configService.get<string>('TELEGRAM_CHAT_ID');
+    this.chatId = this.configService.get<string>('TELEGRAM_CHAT_ID') || '';
 
     if (token && token !== 'your-telegram-bot-token') {
       try {
