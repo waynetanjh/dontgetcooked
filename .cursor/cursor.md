@@ -1,7 +1,7 @@
 # Don't Get Cooked Reminder App - Cursor AI Instructions
 
 ## Project Overview
-Personal web app to track birthdays, anniversaries, and important events with automated Telegram reminders. Single-user application.
+Web app to track birthdays, anniversaries, and important events with automated Telegram reminders. 
 
 Files should be seperated in terms of 
 - backend for all backend files 
@@ -118,7 +118,7 @@ model Event {
 }
 ```
 
-**Design Philosophy:** Single flat Event table stores all information. Multiple events for the same person are just separate records with the same name. Simple, works perfectly for a personal reminder app.
+**Design Philosophy:** Single flat Event table stores all information. Multiple events for the same person are just separate records with the same name. 
 
 ## Backend Structure (NestJS)
 ```

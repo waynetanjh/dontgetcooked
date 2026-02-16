@@ -7,13 +7,14 @@ import { UpdateFriendDto } from './dto/update-friend.dto';
 export class FriendsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createFriendDto: CreateFriendDto) {
+  async create(createFriendDto: CreateFriendDto, userId: string) {
     const event = await this.prisma.event.create({
       data: {
         name: createFriendDto.name,
         eventDate: new Date(createFriendDto.eventDate),
         eventLabel: createFriendDto.eventLabel,
         notes: createFriendDto.notes,
+        userId: userId,
       },
     });
 
@@ -24,8 +25,11 @@ export class FriendsService {
     };
   }
 
-  async findAll() {
+  async findAll(userId: string) {
     const events = await this.prisma.event.findMany({
+      where: {
+        userId: userId,
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -38,12 +42,17 @@ export class FriendsService {
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, userId: string) {
     const event = await this.prisma.event.findUnique({
       where: { id },
     });
 
     if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    // Verify the event belongs to the user
+    if (event.userId !== userId) {
       throw new NotFoundException('Event not found');
     }
 
@@ -54,13 +63,18 @@ export class FriendsService {
     };
   }
 
-  async update(id: string, updateFriendDto: UpdateFriendDto) {
+  async update(id: string, updateFriendDto: UpdateFriendDto, userId: string) {
     // Check if event exists
     const existingEvent = await this.prisma.event.findUnique({
       where: { id },
     });
 
     if (!existingEvent) {
+      throw new NotFoundException('Event not found');
+    }
+
+    // Verify the event belongs to the user
+    if (existingEvent.userId !== userId) {
       throw new NotFoundException('Event not found');
     }
 
@@ -87,13 +101,18 @@ export class FriendsService {
     };
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
     // Check if event exists
     const existingEvent = await this.prisma.event.findUnique({
       where: { id },
     });
 
     if (!existingEvent) {
+      throw new NotFoundException('Event not found');
+    }
+
+    // Verify the event belongs to the user
+    if (existingEvent.userId !== userId) {
       throw new NotFoundException('Event not found');
     }
 
@@ -109,8 +128,11 @@ export class FriendsService {
   }
 
   // Get distinct names for autocomplete
-  async getDistinctNames(): Promise<string[]> {
+  async getDistinctNames(userId: string): Promise<string[]> {
     const events = await this.prisma.event.findMany({
+      where: {
+        userId: userId,
+      },
       select: { name: true },
       distinct: ['name'],
       orderBy: { name: 'asc' },

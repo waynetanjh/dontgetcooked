@@ -9,9 +9,13 @@ export class BirthdaysService {
     private configService: ConfigService,
   ) {}
 
-  async getUpcoming() {
+  async getUpcoming(userId: string) {
     const timezone = this.configService.get<string>('TZ') || 'Asia/Singapore';
-    const events = await this.prisma.event.findMany();
+    const events = await this.prisma.event.findMany({
+      where: {
+        userId: userId,
+      },
+    });
 
     const today = new Date(
       new Date().toLocaleString('en-US', { timeZone: timezone }),
@@ -58,8 +62,12 @@ export class BirthdaysService {
     };
   }
 
-  async exportCalendar() {
-    const events = await this.prisma.event.findMany();
+  async exportCalendar(userId: string) {
+    const events = await this.prisma.event.findMany({
+      where: {
+        userId: userId,
+      },
+    });
     
     // Generate iCalendar format
     let icsContent = [

@@ -56,29 +56,35 @@ export class SchedulerService {
 
       this.logger.log(`Found ${users.length} user(s) with linked chats`);
 
-      // Get all events
-      const events = await this.prisma.event.findMany();
-
-      // Filter events that match today's date (ignore year)
-      const todaysEvents = events.filter((event) => {
-        const eventDate = new Date(event.eventDate);
-        const eventMonth = eventDate.getMonth() + 1;
-        const eventDay = eventDate.getDate();
-
-        return eventMonth === todayMonth && eventDay === todayDay;
-      });
-
-      if (todaysEvents.length === 0) {
-        this.logger.log('No events for today');
-        return { count: 0, events: [] };
-      }
-
-      this.logger.log(`Found ${todaysEvents.length} event(s) for today`);
-
       const sentEvents: string[] = [];
 
-      // Send notifications to each user
+      // Send notifications to each user for THEIR events only
       for (const user of users) {
+        // Get only this user's events
+        const userEvents = await this.prisma.event.findMany({
+          where: {
+            userId: user.id,
+          },
+        });
+
+        // Filter events that match today's date (ignore year)
+        const todaysEvents = userEvents.filter((event) => {
+          const eventDate = new Date(event.eventDate);
+          const eventMonth = eventDate.getMonth() + 1;
+          const eventDay = eventDate.getDate();
+
+          return eventMonth === todayMonth && eventDay === todayDay;
+        });
+
+        if (todaysEvents.length === 0) {
+          this.logger.log(`No events for today for user ${user.email}`);
+          continue;
+        }
+
+        this.logger.log(
+          `Found ${todaysEvents.length} event(s) for today for user ${user.email}`,
+        );
+
         for (const event of todaysEvents) {
           try {
             const success =

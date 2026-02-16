@@ -19,6 +19,7 @@ model User {
   chatLinkedAt     DateTime? @map("chat_linked_at")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
+  events           Event[]
   
   @@map("users")
 }
@@ -29,6 +30,8 @@ model Event {
   eventDate  DateTime @db.Date @map("event_date")
   eventLabel String?  @map("event_label")
   notes      String?
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
   
