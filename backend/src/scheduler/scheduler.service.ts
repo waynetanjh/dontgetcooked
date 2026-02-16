@@ -91,6 +91,7 @@ export class SchedulerService {
               await this.telegramService.sendBirthdayReminderToUser(
                 user.id,
                 event.name,
+                event.eventDate,
                 event.eventLabel ?? undefined,
                 event.notes ?? undefined,
               );
@@ -186,6 +187,7 @@ export class SchedulerService {
             await this.telegramService.sendBirthdayReminderToUser(
               user.id,
               event.name,
+              event.eventDate,
               event.eventLabel ?? undefined,
               event.notes ?? undefined,
             );

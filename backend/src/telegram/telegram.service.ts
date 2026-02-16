@@ -232,6 +232,7 @@ You'll receive daily notifications for your events!
   async sendBirthdayReminderToUser(
     userId: string,
     name: string,
+    eventDate: Date,
     eventLabel?: string,
     notes?: string,
   ): Promise<boolean> {
@@ -244,7 +245,15 @@ You'll receive daily notifications for your events!
       return false;
     }
 
-    let message = `📅 ${name}`;
+    // Format date in Singapore timezone
+    const formattedDate = new Date(eventDate).toLocaleDateString('en-US', {
+      timeZone: 'Asia/Singapore',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+
+    let message = `${formattedDate}\n📅 ${name}`;
 
     if (eventLabel) {
       message += ` [${eventLabel}]`;
