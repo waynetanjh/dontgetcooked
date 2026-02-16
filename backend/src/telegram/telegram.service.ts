@@ -79,12 +79,16 @@ Hello ${displayName}! 👋
 
 ✅ <b>Chat Linked Successfully!</b>
 
-Your Telegram account (@${telegramUsername}) is now linked to your Birthday Reminder account.
+Your Telegram account (@${telegramUsername}) is now linked to your Don't Get Cooked account.
 
 You'll automatically receive daily notifications for:
 🎂 Birthdays
 💝 Anniversaries  
 🎉 Special events
+
+Head to <b>Settings</b> in the app to send a test notification and make sure everything works!
+
+Notifications are sent once daily at 9:00 AM (SGT) if there are any events for the day.
 
 <b>Commands:</b>
 /start - Link or relink your account
@@ -109,11 +113,13 @@ Hello @${telegramUsername}! 👋
 We couldn't find an account registered with your Telegram username (@${telegramUsername}).
 
 <b>To get started:</b>
-1. Create an account at the Birthday Reminder app
+1. Create an account at <a href="https://dontgetcooked.vercel.app">dontgetcooked.vercel.app</a>
 2. Use <b>@${telegramUsername}</b> as your Telegram username during registration
-3. Come back here and press /start
+3. Come back here and press /start again
 
-Once you create an account, your notifications will be automatically enabled!
+Once linked, you can test your notifications from the <b>Settings</b> page in the app.
+
+Notifications are sent once daily at 9:00 AM (SGT) if there are any events for the day.
         `.trim();
 
         await this.bot.sendMessage(chatId, noAccountMessage, {
