@@ -120,7 +120,7 @@ Hello ${displayName}! 👋
 Welcome to <b>Don't Get Cooked</b> — your personal event reminder bot! 🎂
 
 <b>To complete setup:</b>
-1. Go to <a href="https://dontgetcooked.vercel.app">dontgetcooked.vercel.app</a>
+1. Go to <a href="https://dontgetcooked.vercel.app/register">dontgetcooked.vercel.app/register</a>
 2. Create an account using <b>@${telegramUsername}</b> as your Telegram username
 3. That's it! I'll message you here once your account is linked ✅
 
