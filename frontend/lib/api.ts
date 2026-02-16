@@ -105,6 +105,19 @@ export const telegramApi = {
     const response = await api.post("/telegram/test");
     return { success: response.data.success, message: response.data.message };
   },
+  
+  sendTodayBirthdays: async (): Promise<{ 
+    success: boolean; 
+    message: string; 
+    data: { count: number; events: string[] } | null 
+  }> => {
+    const response = await api.post("/telegram/today-birthdays");
+    return { 
+      success: response.data.success, 
+      message: response.data.message,
+      data: response.data.data 
+    };
+  },
 };
 
 export default api;

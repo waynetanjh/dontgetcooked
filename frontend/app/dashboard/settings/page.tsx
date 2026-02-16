@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TelegramTest } from "@/components/settings/TelegramTest";
+import { TodayBirthdayNotifications } from "@/components/settings/TodayBirthdayNotifications";
 import { Download, Calendar } from "lucide-react";
 import { eventsApi } from "@/lib/api";
 import { toast } from "sonner";
@@ -49,6 +50,9 @@ export default function SettingsPage() {
       <div className="grid gap-6 md:grid-cols-2">
         {/* Telegram Test */}
         <TelegramTest />
+
+        {/* Today's Birthday Notifications */}
+        <TodayBirthdayNotifications />
 
         {/* Calendar Export */}
         <Card>

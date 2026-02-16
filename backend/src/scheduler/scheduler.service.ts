@@ -19,6 +19,14 @@ export class SchedulerService {
     timeZone: 'Asia/Singapore',
   })
   async handleDailyReminders() {
+    await this.sendTodaysBirthdayNotifications();
+  }
+
+  // Public method to send today's birthday notifications (can be called manually)
+  async sendTodaysBirthdayNotifications(): Promise<{
+    count: number;
+    events: string[];
+  }> {
     this.logger.log('Running daily birthday reminder check...');
 
     try {
@@ -46,10 +54,12 @@ export class SchedulerService {
 
       if (todaysEvents.length === 0) {
         this.logger.log('No events for today');
-        return;
+        return { count: 0, events: [] };
       }
 
       this.logger.log(`Found ${todaysEvents.length} event(s) for today`);
+
+      const sentEvents: string[] = [];
 
       // Send notification for each event
       for (const event of todaysEvents) {
@@ -62,6 +72,7 @@ export class SchedulerService {
 
           if (success) {
             this.logger.log(`Sent reminder for: ${event.name}`);
+            sentEvents.push(event.name);
           } else {
             this.logger.warn(`Failed to send reminder for: ${event.name}`);
           }
@@ -71,8 +82,11 @@ export class SchedulerService {
           );
         }
       }
+
+      return { count: sentEvents.length, events: sentEvents };
     } catch (error) {
       this.logger.error(`Error in daily reminder check: ${error.message}`);
+      throw error;
     }
   }
 }
