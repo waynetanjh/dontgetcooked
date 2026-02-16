@@ -14,8 +14,8 @@ export class SchedulerService {
     private configService: ConfigService,
   ) {}
 
-  // Daily cron job - default at 9:00 AM (0 9 * * *)
-  @Cron('0 9 * * *', {
+  // Daily cron job - reads from CRON_TIME env var, defaults to 9:00 AM
+  @Cron(process.env.CRON_TIME || '0 9 * * *', {
     timeZone: 'Asia/Singapore',
   })
   async handleDailyReminders() {
