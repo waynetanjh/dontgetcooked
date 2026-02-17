@@ -60,7 +60,7 @@ export default function NewEventPage() {
         <CardHeader>
           <CardTitle>Add New Event</CardTitle>
           <CardDescription>
-            Add an event and its corresponding event date 
+            Add an event and its corresponding event date  
           </CardDescription>
         </CardHeader>
         <CardContent>
