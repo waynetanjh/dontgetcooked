@@ -66,6 +66,7 @@ export default function EditEventPage({
         eventDate: dateString,
         eventLabel: data.eventLabel,
         notes: data.notes,
+        isRecurring: data.isRecurring,
       });
 
       toast.success("Event updated successfully!");

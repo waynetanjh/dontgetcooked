@@ -30,6 +30,7 @@ export default function NewEventPage() {
         eventDate: dateString,
         eventLabel: data.eventLabel,
         notes: data.notes,
+        isRecurring: data.isRecurring,
       });
 
       toast.success("Event created successfully!");
@@ -59,7 +60,7 @@ export default function NewEventPage() {
         <CardHeader>
           <CardTitle>Add New Event</CardTitle>
           <CardDescription>
-            Add a person and their special event date
+            Add an event and its corresponding event date 
           </CardDescription>
         </CardHeader>
         <CardContent>

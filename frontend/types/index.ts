@@ -11,6 +11,7 @@ export interface Event {
   eventDate: string; // ISO date string
   eventLabel?: string;
   notes?: string;
+  isRecurring: boolean;
   createdAt: string;
   updatedAt: string;
 }

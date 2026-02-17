@@ -9,12 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { eventSchema, type EventFormData } from "@/lib/validations";
 import { cn } from "@/lib/utils";
 import type { Event } from "@/types";
-import { useEffect, useState } from "react";
-import { peopleApi } from "@/lib/api";
 
 interface EventFormProps {
   defaultValues?: Partial<Event>;
@@ -29,8 +28,6 @@ export function EventForm({
   isLoading,
   submitLabel = "Save Event",
 }: EventFormProps) {
-  const [existingNames, setExistingNames] = useState<string[]>([]);
-
   const {
     register,
     handleSubmit,
@@ -45,51 +42,33 @@ export function EventForm({
           eventDate: new Date(defaultValues.eventDate),
           eventLabel: defaultValues.eventLabel || "",
           notes: defaultValues.notes || "",
+          isRecurring: defaultValues.isRecurring ?? true,
         }
-      : undefined,
+      : {
+          isRecurring: true,
+        },
   });
 
   const selectedDate = watch("eventDate");
-
-  useEffect(() => {
-    loadExistingNames();
-  }, []);
-
-  const loadExistingNames = async () => {
-    try {
-      const names = await peopleApi.getDistinctNames();
-      setExistingNames(names);
-    } catch (error) {
-      console.error("Failed to load existing names:", error);
-    }
-  };
+  const isRecurring = watch("isRecurring");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Name with datalist for autocomplete */}
+      {/* Name */}
       <div className="space-y-2">
         <Label htmlFor="name">
           Name <span className="text-destructive">*</span>
         </Label>
         <Input
           id="name"
-          list="existing-names"
           placeholder="e.g., John, Mom, Sarah & David"
           {...register("name")}
           disabled={isLoading}
           autoComplete="off"
         />
-        <datalist id="existing-names">
-          {existingNames.map((name) => (
-            <option key={name} value={name} />
-          ))}
-        </datalist>
         {errors.name && (
           <p className="text-sm text-destructive">{errors.name.message}</p>
         )}
-        <p className="text-xs text-muted-foreground">
-          Start typing to see existing names, or enter a new name
-        </p>
       </div>
 
       {/* Event Date */}
@@ -123,6 +102,22 @@ export function EventForm({
         {errors.eventDate && (
           <p className="text-sm text-destructive">{errors.eventDate.message}</p>
         )}
+      </div>
+
+      {/* Recurring Event Checkbox */}
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="isRecurring"
+          checked={isRecurring}
+          onCheckedChange={(checked) => setValue("isRecurring", checked as boolean)}
+          disabled={isLoading}
+        />
+        <Label
+          htmlFor="isRecurring"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+        >
+          Recurring event (repeats annually)
+        </Label>
       </div>
 
       {/* Event Label */}
