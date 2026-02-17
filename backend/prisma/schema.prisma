@@ -34,15 +34,16 @@ model PendingTelegramLink {
 }
 
 model Event {
-  id         String   @id @default(uuid())
-  name       String
-  eventDate  DateTime @db.Date @map("event_date")
-  eventLabel String?  @map("event_label")
-  notes      String?
-  userId     String   @map("user_id")
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid())
+  name        String
+  eventDate   DateTime @db.Date @map("event_date")
+  eventLabel  String?  @map("event_label")
+  notes       String?
+  isRecurring Boolean  @default(true) @map("is_recurring")
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
   
   @@map("events")
 }

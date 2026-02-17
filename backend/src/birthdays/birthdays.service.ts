@@ -23,34 +23,53 @@ export class BirthdaysService {
     const currentYear = today.getFullYear();
 
     // Calculate next occurrence for each event
-    const upcomingEvents = events.map((event) => {
-      const eventDate = new Date(event.eventDate);
-      const month = eventDate.getMonth();
-      const day = eventDate.getDate();
-      const originalYear = eventDate.getFullYear();
+    const upcomingEvents = events
+      .map((event) => {
+        const eventDate = new Date(event.eventDate);
+        const month = eventDate.getMonth();
+        const day = eventDate.getDate();
+        const originalYear = eventDate.getFullYear();
 
-      // Create next occurrence in current year
-      let nextOccurrence = new Date(currentYear, month, day);
+        let nextOccurrence: Date;
+        let daysUntil: number;
+        let yearCount: number;
 
-      // If the date has passed this year, use next year
-      if (nextOccurrence < today) {
-        nextOccurrence = new Date(currentYear + 1, month, day);
-      }
+        if (event.isRecurring) {
+          // Recurring event: calculate next occurrence based on current year
+          nextOccurrence = new Date(currentYear, month, day);
 
-      const daysUntil = Math.ceil(
-        (nextOccurrence.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-      );
+          // If the date has passed this year, use next year
+          if (nextOccurrence < today) {
+            nextOccurrence = new Date(currentYear + 1, month, day);
+          }
 
-      // Calculate year count (how many years since the original date)
-      const yearCount = nextOccurrence.getFullYear() - originalYear;
+          daysUntil = Math.ceil(
+            (nextOccurrence.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+          );
 
-      return {
-        ...event,
-        nextOccurrence: nextOccurrence.toISOString(),
-        daysUntil,
-        yearCount,
-      };
-    });
+          // Calculate year count (how many years since the original date)
+          yearCount = nextOccurrence.getFullYear() - originalYear;
+        } else {
+          // Non-recurring event: use the original date
+          nextOccurrence = eventDate;
+
+          daysUntil = Math.ceil(
+            (nextOccurrence.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+          );
+
+          // For non-recurring events, yearCount is always 0
+          yearCount = 0;
+        }
+
+        return {
+          ...event,
+          nextOccurrence: nextOccurrence.toISOString(),
+          daysUntil,
+          yearCount,
+        };
+      })
+      // Filter out non-recurring events that have already passed
+      .filter((event) => event.isRecurring || event.daysUntil >= 0);
 
     // Sort by days until next occurrence
     upcomingEvents.sort((a, b) => a.daysUntil - b.daysUntil);
@@ -93,14 +112,21 @@ export class BirthdaysService {
       
       const description = event.notes ? event.notes : '';
 
-      icsContent.push(
+      const eventLines = [
         'BEGIN:VEVENT',
         `UID:${uid}`,
         `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
         `DTSTART;VALUE=DATE:${dateStr}`,
         `SUMMARY:${summary}`,
         `DESCRIPTION:${description}`,
-        'RRULE:FREQ=YEARLY',
+      ];
+
+      // Only add RRULE if the event is recurring
+      if (event.isRecurring) {
+        eventLines.push('RRULE:FREQ=YEARLY');
+      }
+
+      eventLines.push(
         'BEGIN:VALARM',
         'TRIGGER:-PT9H',
         'ACTION:DISPLAY',
@@ -108,6 +134,8 @@ export class BirthdaysService {
         'END:VALARM',
         'END:VEVENT',
       );
+
+      icsContent.push(...eventLines);
     });
 
     icsContent.push('END:VCALENDAR');

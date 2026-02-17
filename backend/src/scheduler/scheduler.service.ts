@@ -73,13 +73,24 @@ export class SchedulerService {
           },
         });
 
-        // Filter events that match today's date (ignore year)
+        // Filter events that match today's date
         const todaysEvents = userEvents.filter((event) => {
           const eventDate = new Date(event.eventDate);
           const eventMonth = eventDate.getMonth() + 1;
           const eventDay = eventDate.getDate();
+          const eventYear = eventDate.getFullYear();
 
-          return eventMonth === todayMonth && eventDay === todayDay;
+          // For recurring events: match month and day (ignore year)
+          if (event.isRecurring) {
+            return eventMonth === todayMonth && eventDay === todayDay;
+          }
+          
+          // For non-recurring events: match exact date including year
+          return (
+            eventMonth === todayMonth &&
+            eventDay === todayDay &&
+            eventYear === today.getFullYear()
+          );
         });
 
         if (todaysEvents.length === 0) {
@@ -173,13 +184,24 @@ export class SchedulerService {
         },
       });
 
-      // Filter events that match today's date (ignore year)
+      // Filter events that match today's date
       const todaysEvents = userEvents.filter((event) => {
         const eventDate = new Date(event.eventDate);
         const eventMonth = eventDate.getMonth() + 1;
         const eventDay = eventDate.getDate();
+        const eventYear = eventDate.getFullYear();
 
-        return eventMonth === todayMonth && eventDay === todayDay;
+        // For recurring events: match month and day (ignore year)
+        if (event.isRecurring) {
+          return eventMonth === todayMonth && eventDay === todayDay;
+        }
+        
+        // For non-recurring events: match exact date including year
+        return (
+          eventMonth === todayMonth &&
+          eventDay === todayDay &&
+          eventYear === today.getFullYear()
+        );
       });
 
       if (todaysEvents.length === 0) {

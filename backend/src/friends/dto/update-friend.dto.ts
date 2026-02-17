@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsDateString } from 'class-validator';
+import { IsOptional, IsString, IsDateString, IsBoolean } from 'class-validator';
 
 export class UpdateFriendDto {
   @IsString()
@@ -16,4 +16,8 @@ export class UpdateFriendDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isRecurring?: boolean;
 }

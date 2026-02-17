@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsDateString, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsDateString, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreateFriendDto {
   @IsString()
@@ -16,4 +16,8 @@ export class CreateFriendDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isRecurring?: boolean;
 }
