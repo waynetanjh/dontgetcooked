@@ -4,9 +4,15 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { TelegramService } from '../telegram/telegram.service';
 
+const TELEGRAM_SEND_DELAY_MS = 150;
+
 @Injectable()
 export class SchedulerService {
   private readonly logger = new Logger(SchedulerService.name);
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
 
   constructor(
     private prisma: PrismaService,
@@ -85,33 +91,39 @@ export class SchedulerService {
           `Found ${todaysEvents.length} event(s) for today for user ${user.email}`,
         );
 
-        for (const event of todaysEvents) {
-          try {
-            const success =
-              await this.telegramService.sendBirthdayReminderToUser(
-                user.id,
-                event.name,
-                event.eventDate,
-                event.eventLabel ?? undefined,
-                event.notes ?? undefined,
-              );
+        try {
+          // Send all events in one combined message
+          const success =
+            await this.telegramService.sendMultipleBirthdayRemindersToUser(
+              user.id,
+              todaysEvents.map((event) => ({
+                name: event.name,
+                eventDate: event.eventDate,
+                eventLabel: event.eventLabel ?? undefined,
+                notes: event.notes ?? undefined,
+              })),
+            );
 
-            if (success) {
-              this.logger.log(
-                `Sent reminder for ${event.name} to user ${user.email}`,
-              );
+          if (success) {
+            this.logger.log(
+              `Sent combined reminder with ${todaysEvents.length} event(s) to user ${user.email}`,
+            );
+            todaysEvents.forEach((event) => {
               sentEvents.push(`${event.name} -> ${user.email}`);
-            } else {
-              this.logger.warn(
-                `Failed to send reminder for ${event.name} to user ${user.email}`,
-              );
-            }
-          } catch (error) {
-            this.logger.error(
-              `Error sending reminder for ${event.name} to ${user.email}: ${error.message}`,
+            });
+          } else {
+            this.logger.warn(
+              `Failed to send combined reminder to user ${user.email}`,
             );
           }
+        } catch (error) {
+          this.logger.error(
+            `Error sending combined reminder to ${user.email}: ${error.message}`,
+          );
         }
+
+        // Delay between users (not between events)
+        await this.delay(TELEGRAM_SEND_DELAY_MS);
       }
 
       return { count: sentEvents.length, events: sentEvents };
@@ -181,32 +193,35 @@ export class SchedulerService {
 
       const sentEvents: string[] = [];
 
-      for (const event of todaysEvents) {
-        try {
-          const success =
-            await this.telegramService.sendBirthdayReminderToUser(
-              user.id,
-              event.name,
-              event.eventDate,
-              event.eventLabel ?? undefined,
-              event.notes ?? undefined,
-            );
+      try {
+        // Send all events in one combined message
+        const success =
+          await this.telegramService.sendMultipleBirthdayRemindersToUser(
+            user.id,
+            todaysEvents.map((event) => ({
+              name: event.name,
+              eventDate: event.eventDate,
+              eventLabel: event.eventLabel ?? undefined,
+              notes: event.notes ?? undefined,
+            })),
+          );
 
-          if (success) {
-            this.logger.log(
-              `Sent reminder for ${event.name} to user ${user.email}`,
-            );
+        if (success) {
+          this.logger.log(
+            `Sent combined reminder with ${todaysEvents.length} event(s) to user ${user.email}`,
+          );
+          todaysEvents.forEach((event) => {
             sentEvents.push(`${event.name} -> ${user.email}`);
-          } else {
-            this.logger.warn(
-              `Failed to send reminder for ${event.name} to user ${user.email}`,
-            );
-          }
-        } catch (error) {
-          this.logger.error(
-            `Error sending reminder for ${event.name} to ${user.email}: ${error.message}`,
+          });
+        } else {
+          this.logger.warn(
+            `Failed to send combined reminder to user ${user.email}`,
           );
         }
+      } catch (error) {
+        this.logger.error(
+          `Error sending combined reminder to ${user.email}: ${error.message}`,
+        );
       }
 
       return { count: sentEvents.length, events: sentEvents };

@@ -265,4 +265,55 @@ You'll receive daily notifications for your events!
 
     return this.sendMessageToChat(user.chatId, message);
   }
+
+  async sendMultipleBirthdayRemindersToUser(
+    userId: string,
+    events: Array<{
+      name: string;
+      eventDate: Date;
+      eventLabel?: string;
+      notes?: string;
+    }>,
+  ): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.chatId) {
+      this.logger.warn(`User ${userId} has no linked chat`);
+      return false;
+    }
+
+    if (events.length === 0) {
+      return false;
+    }
+
+    // Format date in Singapore timezone (all events are on the same day)
+    const formattedDate = new Date(events[0].eventDate).toLocaleDateString(
+      'en-US',
+      {
+        timeZone: 'Asia/Singapore',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      },
+    );
+
+    // Build combined message with all events
+    let message = formattedDate;
+
+    for (const event of events) {
+      message += `\n📅 ${event.name}`;
+
+      if (event.eventLabel) {
+        message += ` [${event.eventLabel}]`;
+      }
+
+      if (event.notes) {
+        message += `\nNote: ${event.notes}`;
+      }
+    }
+
+    return this.sendMessageToChat(user.chatId, message);
+  }
 }

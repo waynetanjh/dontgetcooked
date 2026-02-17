@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Cake } from "lucide-react";
+import { Bell } from "lucide-react";
 import { telegramApi } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -27,8 +27,8 @@ export function TodayBirthdayNotifications() {
         toast.error(result.message);
       }
     } catch (error: any) {
-      console.error("Failed to send birthday notifications:", error);
-      const message = error.response?.data?.message || "Failed to send birthday notifications";
+      console.error("Failed to send event notifications:", error);
+      const message = error.response?.data?.message || "Failed to send event notifications";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -38,15 +38,15 @@ export function TodayBirthdayNotifications() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Send Today&apos;s Birthday Notifications</CardTitle>
+        <CardTitle>Send Today&apos;s Event Notifications</CardTitle>
         <CardDescription>
-          Manually send Telegram notifications for all birthdays happening today
+          Manually send Telegram notifications for all events scheduled for today
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Button onClick={handleSendNotifications} disabled={isLoading}>
-          <Cake className="mr-2 h-4 w-4" />
-          {isLoading ? "Sending..." : "Send Birthday Notifications"}
+          <Bell className="mr-2 h-4 w-4" />
+          {isLoading ? "Sending..." : "Send Today's Notifications"}
         </Button>
       </CardContent>
     </Card>
