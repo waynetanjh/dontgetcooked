@@ -301,9 +301,10 @@ You'll receive daily notifications for your events!
 
     // Build combined message with all events
     let message = formattedDate;
+    let eventNumber = 1;
 
     for (const event of events) {
-      message += `\n📅 ${event.name}`;
+      message += `\n${eventNumber}. ${event.name}`;
 
       if (event.eventLabel) {
         message += ` [${event.eventLabel}]`;
@@ -315,7 +316,11 @@ You'll receive daily notifications for your events!
 
       // Add blank line between events
       message += `\n`;
+      eventNumber++;
     }
+
+    // Add message to visit website
+    message += `\nVisit ${process.env.FRONTEND_URL} to add more events!`;
 
     return this.sendMessageToChat(user.chatId, message);
   }
