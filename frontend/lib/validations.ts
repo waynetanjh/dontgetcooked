@@ -24,7 +24,7 @@ export const eventSchema = z.object({
   eventDate: z.date({ message: "Event date is required" }),
   eventLabel: z.string().max(50, "Event label is too long").optional(),
   notes: z.string().max(500, "Notes are too long").optional(),
-  isRecurring: z.boolean().default(true),
+  isRecurring: z.boolean(),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
