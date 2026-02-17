@@ -312,6 +312,9 @@ You'll receive daily notifications for your events!
       if (event.notes) {
         message += `\nNote: ${event.notes}`;
       }
+
+      // Add blank line between events
+      message += `\n`;
     }
 
     return this.sendMessageToChat(user.chatId, message);
