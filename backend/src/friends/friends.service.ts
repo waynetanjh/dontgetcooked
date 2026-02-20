@@ -14,6 +14,7 @@ export class FriendsService {
         eventDate: new Date(createFriendDto.eventDate),
         eventLabel: createFriendDto.eventLabel,
         notes: createFriendDto.notes,
+        isRecurring: createFriendDto.isRecurring ?? true,
         userId: userId,
       },
     });
@@ -90,6 +91,9 @@ export class FriendsService {
         }),
         ...(updateFriendDto.notes !== undefined && {
           notes: updateFriendDto.notes,
+        }),
+        ...(updateFriendDto.isRecurring !== undefined && {
+          isRecurring: updateFriendDto.isRecurring,
         }),
       },
     });
